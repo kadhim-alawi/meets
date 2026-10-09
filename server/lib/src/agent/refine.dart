@@ -125,7 +125,8 @@ Creator's request: "$message"''';
     if (recency != null && recency != b.recencyYears && recency >= 0 && recency <= 50) {
       changes.add(recency == 0 ? 'Any year' : 'Last $recency years');
     }
-    final size = input['size'] == null ? null : SizePref.fromName(asString(input['size']));
+    final sizeName = asString(input['size'])?.trim().toLowerCase();
+    final size = SizePref.values.where((v) => v.name == sizeName).firstOrNull;
     if (size != null && size != b.size) changes.add('Size: ${size.label}');
     final marketCode = asString(input['market'])?.toUpperCase();
     final market = marketCode != null && Market.all.any((m) => m.code == marketCode) ? marketCode : null;
@@ -143,8 +144,10 @@ Creator's request: "$message"''';
       market: market,
       ages: ages,
     );
-    final copyOnly = asBool(input['copy_only']) && changes.isEmpty;
-    final instructions = asString(input['copy_instructions']) ?? (copyOnly ? message : null);
+    final copyInstructions = asString(input['copy_instructions'])?.trim();
+    // Wording-only requests rewrite the copy even if the model forgot copy_only.
+    final copyOnly = changes.isEmpty && (asBool(input['copy_only']) || (copyInstructions != null && copyInstructions.isNotEmpty));
+    final instructions = (copyInstructions == null || copyInstructions.isEmpty) ? (copyOnly ? message : null) : copyInstructions;
     if (copyOnly) changes.add('Rewrote the copy');
     return Refinement(brief: b, copyOnly: copyOnly, copyInstructions: instructions, changes: changes);
   }
@@ -156,7 +159,7 @@ Creator's request: "$message"''';
     final changes = <String>[];
     final years = RegExp(r'(?:last|past|within)\s+(\d{1,2})\s+years?').firstMatch(text);
     if (years != null) {
-      final n = int.parse(years.group(1)!);
+      final n = int.parse(years.group(1)!).clamp(1, 50);
       b = b.copyWith(recencyYears: n);
       changes.add('Last $n years');
     } else if (text.contains('any year') || text.contains('classics')) {
@@ -170,16 +173,18 @@ Creator's request: "$message"''';
       b = b.copyWith(size: SizePref.mainstream);
       changes.add('Size: Mainstream');
     }
+    String? market;
     for (final m in Market.all) {
       if (m.code != 'GLOBAL' && text.contains(m.name.toLowerCase())) {
-        b = b.copyWith(market: m.code);
-        changes.add('Market: ${m.name}');
+        market = m.code;
         break;
       }
     }
-    if (text.contains(' uk') || text.startsWith('uk')) {
-      b = b.copyWith(market: 'GB');
-      changes.add('Market: United Kingdom');
+    if (market == null && RegExp(r'\b(uk|britain|british)\b').hasMatch(text)) market = 'GB';
+    if (market == null && RegExp(r'\b(usa|us market|america|american)\b').hasMatch(text)) market = 'US';
+    if (market != null && market != b.market) {
+      b = b.copyWith(market: market);
+      changes.add('Market: ${Market.fromCode(market).name}');
     }
     final more = RegExp(r'more like ([^,.;]+)').firstMatch(message);
     if (more != null) {

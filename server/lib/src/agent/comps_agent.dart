@@ -144,33 +144,35 @@ class CompsAgent {
     final audienceFuture = _audience(qloo, anchorIds, anchors, format, emit, notes);
     final marketsFuture = _markets(qloo, anchorIds, brief, emit, notes);
 
+    final siblings = <Future<Object?>>[crossFuture, channelFuture, audienceFuture, marketsFuture];
     final DomainScan primary;
+    final CompPairing? pairing;
+    final List<CompVerdict> compCheck;
+    final List<DomainScan> cross, channels;
+    final AudienceProfile? audience;
+    final List<MarketCity> markets;
     try {
       primary = await primaryFuture;
-    } catch (_) {
-      // Don't leave the sibling scans' errors unobserved.
-      for (final f in <Future<Object?>>[crossFuture, channelFuture, audienceFuture, marketsFuture]) {
-        f.ignore();
+      if (primary.items.isEmpty) {
+        throw AgentFailure('Qloo returned no ${format.primary.plural.toLowerCase()} for these touchstones. Try adding a better-known one.');
       }
+
+      // 5. Pairing and comp check --------------------------------------------
+      pairing = await _pairing(qloo, primary, emit, notes);
+      compCheck = brief.myComps.isEmpty
+          ? const <CompVerdict>[]
+          : await _compCheck(qloo, brief, anchorIds, primary, year, emit, notes);
+
+      cross = (await crossFuture).whereType<DomainScan>().toList();
+      channels = (await channelFuture).whereType<DomainScan>().toList();
+      audience = await audienceFuture;
+      markets = await marketsFuture;
+    } catch (_) {
+      // The sibling scans are already in flight; make sure their outcome is
+      // observed (they catch Qloo errors themselves) before failing the run.
+      await Future.wait(siblings.map((f) => f.then<Object?>((v) => v, onError: (Object _) => null)));
       rethrow;
     }
-    if (primary.items.isEmpty) {
-      for (final f in <Future<Object?>>[crossFuture, channelFuture, audienceFuture, marketsFuture]) {
-        f.ignore();
-      }
-      throw AgentFailure('Qloo returned no ${format.primary.plural.toLowerCase()} for these touchstones. Try adding a better-known one.');
-    }
-
-    // 5. Pairing and comp check ----------------------------------------------
-    final pairing = await _pairing(qloo, primary, emit, notes);
-    final compCheck = brief.myComps.isEmpty
-        ? const <CompVerdict>[]
-        : await _compCheck(qloo, brief, anchorIds, primary, year, emit, notes);
-
-    final cross = (await crossFuture).whereType<DomainScan>().toList();
-    final channels = (await channelFuture).whereType<DomainScan>().toList();
-    final audience = await audienceFuture;
-    final markets = await marketsFuture;
 
     var kit = CompKit(
       id: kitId,

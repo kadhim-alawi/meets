@@ -16,6 +16,7 @@ class ImageProxy {
   final int maxCacheBytes;
   final Set<String> _allowed = {};
   final _cache = <String, (String, Uint8List)>{};
+  final _inFlight = <String, Future<(String, Uint8List)?>>{};
   int _cacheBytes = 0;
 
   void allow(String? url) {
@@ -36,6 +37,18 @@ class ImageProxy {
     if (!_allowed.contains(url)) return null;
     final hit = _cache[url];
     if (hit != null) return hit;
+    final pending = _inFlight[url];
+    if (pending != null) return pending;
+    final future = _download(url);
+    _inFlight[url] = future;
+    try {
+      return await future;
+    } finally {
+      _inFlight.remove(url);
+    }
+  }
+
+  Future<(String, Uint8List)?> _download(String url) async {
     try {
       final res = await _get(Uri.parse(url));
       if (res == null) return null;

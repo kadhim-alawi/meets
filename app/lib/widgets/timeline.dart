@@ -24,12 +24,14 @@ class AgentTimeline extends StatelessWidget {
         hiddenCalls++;
         final next = i + 1 < events.length ? events[i + 1] : null;
         if (next == null || next.kind != 'qloo') {
-          rows.add(_FoldedCalls(count: hiddenCalls, key: ValueKey('fold${e.seq}')));
+          rows.add(_FoldedCalls(count: hiddenCalls, key: ValueKey('fold$i')));
           hiddenCalls = 0;
         }
         continue;
       }
-      rows.add(_EventRow(event: e, compact: compact, key: ValueKey(e.seq)));
+      // Keyed by position: the list only grows, and seq can repeat across
+      // stitched runs.
+      rows.add(_EventRow(event: e, compact: compact, key: ValueKey('e$i')));
     }
     if (running) rows.add(const _Working());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);

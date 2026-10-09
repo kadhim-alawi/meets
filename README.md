@@ -106,7 +106,7 @@ docker run -p 8080:8080 -e QLOO_API_KEY=... -e ANTHROPIC_API_KEY=... -e PUBLIC_U
 
 - **Render:** New → Blueprint → this repo (`render.yaml`). Set the secrets.
 - **Fly.io:** see the header of `fly.toml`.
-- **Google Cloud Run:** `gcloud run deploy meets --source . --allow-unauthenticated --set-env-vars QLOO_API_KEY=...,ANTHROPIC_API_KEY=...`. Use `--max-instances=1` so live runs and their polling share one instance.
+- **Google Cloud Run:** `gcloud run deploy meets --source . --allow-unauthenticated --max-instances=1 --set-env-vars QLOO_API_KEY=...,ANTHROPIC_API_KEY=...,TRUSTED_PROXY_HOPS=2`. One instance, so live runs and their polling share memory.
 
 Mobile builds point at the deployed API: `flutter build apk --dart-define=API_BASE=https://your.host`.
 

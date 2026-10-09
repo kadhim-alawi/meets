@@ -15,6 +15,7 @@ export 'src/export.dart';
 export 'src/images.dart';
 export 'src/llm/anthropic.dart';
 export 'src/mcp.dart';
+export 'src/net.dart';
 export 'src/qloo/preview_transport.dart';
 export 'src/qloo/qloo_client.dart';
 export 'src/qloo/qloo_parse.dart';

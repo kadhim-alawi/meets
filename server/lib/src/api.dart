@@ -12,6 +12,7 @@ import 'config.dart';
 import 'export.dart';
 import 'images.dart';
 import 'mcp.dart';
+import 'net.dart';
 import 'qloo/qloo_client.dart';
 import 'runs.dart';
 
@@ -20,12 +21,6 @@ Response jsonResponse(Object body, {int status = 200, Map<String, String> header
 
 Response problem(int status, String message) => jsonResponse({'error': message}, status: status);
 
-String clientIp(Request request) {
-  final forwarded = request.headers['x-forwarded-for'];
-  if (forwarded != null && forwarded.isNotEmpty) return forwarded.split(',').first.trim();
-  final info = request.context['shelf.io.connection_info'];
-  return info is HttpConnectionInfo ? info.remoteAddress.address : 'unknown';
-}
 
 /// One example brief shown on the home page.
 class Example {
@@ -121,6 +116,9 @@ class Api {
     if (q.length > 80) return problem(400, 'Query too long.');
     final ip = clientIp(request);
     final now = DateTime.now();
+    if (_searchHits.length > 5000) {
+      _searchHits.removeWhere((_, list) => list.every((t) => now.difference(t) > const Duration(minutes: 1)));
+    }
     final hits = _searchHits.putIfAbsent(ip, () => [])..removeWhere((t) => now.difference(t) > const Duration(minutes: 1));
     if (hits.length >= 90) return problem(429, 'Slow down a little.');
     hits.add(now);

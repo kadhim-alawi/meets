@@ -124,9 +124,13 @@ class RunManager {
 
   final _runs = <String, RunRecord>{};
   final _byIp = <String, Queue<DateTime>>{};
-  final _day = <DateTime>[];
+  final _day = Queue<DateTime>();
   int _active = 0;
   final _waiting = Queue<Completer<void>>();
+
+  /// Kits with a refine or gut check in progress. One writer per kit, so
+  /// concurrent updates can't overwrite each other.
+  final _busyKits = <String>{};
 
   CompsAgent get agent => CompsAgent(client: client, llm: llm);
 
@@ -135,11 +139,17 @@ class RunManager {
   void _checkLimits(String ip) {
     final now = DateTime.now();
     final hourAgo = now.subtract(const Duration(hours: 1));
-    final q = _byIp.putIfAbsent(ip, Queue.new);
-    while (q.isNotEmpty && q.first.isBefore(hourAgo)) {
-      q.removeFirst();
+    // Drop idle buckets so the map can't grow without bound.
+    _byIp.removeWhere((_, q) {
+      while (q.isNotEmpty && q.first.isBefore(hourAgo)) {
+        q.removeFirst();
+      }
+      return q.isEmpty;
+    });
+    while (_day.isNotEmpty && now.difference(_day.first) > const Duration(days: 1)) {
+      _day.removeFirst();
     }
-    _day.removeWhere((t) => now.difference(t) > const Duration(days: 1));
+    final q = _byIp.putIfAbsent(ip, Queue.new);
     if (q.length >= runsPerHourPerIp) {
       throw LimitExceeded('You have started $runsPerHourPerIp runs in the last hour. Try again a little later, or open one of the examples.');
     }
@@ -157,13 +167,16 @@ class RunManager {
     }
     final c = Completer<void>();
     _waiting.add(c);
+    // The releasing run hands its slot over directly; _active is unchanged.
     await c.future;
-    _active++;
   }
 
   void _release() {
-    _active--;
-    if (_waiting.isNotEmpty) _waiting.removeFirst().complete();
+    if (_waiting.isNotEmpty) {
+      _waiting.removeFirst().complete();
+    } else {
+      _active--;
+    }
   }
 
   /// Counts a run against [ip]'s hourly and the server's daily budget.
@@ -184,17 +197,29 @@ class RunManager {
     _runs.removeWhere((_, r) => r.status.finished && r.createdAt.isBefore(cutoff));
   }
 
+  /// Appends a follow-up run's events to a kit's trace, renumbering them so
+  /// sequence numbers stay unique.
+  static List<RunEvent> appendTrace(List<RunEvent> trace, List<RunEvent> more) {
+    var seq = trace.isEmpty ? 0 : trace.map((e) => e.seq).reduce((a, b) => a > b ? a : b);
+    return [
+      ...trace,
+      for (final e in more) RunEvent(seq: ++seq, at: e.at, kind: e.kind, title: e.title, detail: e.detail, data: e.data),
+    ];
+  }
+
   RunRecord _start(String kind, String kitId, String ip, Future<CompKit> Function(RunRecord) body) {
     _gc();
     final record = RunRecord(id: newId(), kitId: kitId, kind: kind, ip: ip);
     _runs[record.id] = record;
+    final locks = kind != 'build';
+    if (locks) _busyKits.add(kitId);
     unawaited(() async {
       await _acquire();
       record.status = RunStatus.running;
       try {
         final kit = await body(record);
         record.kit = kit;
-        final trace = kind == 'build' ? record.emitter.events : [...kits.traceOf(kitId), ...record.emitter.events];
+        final trace = kind == 'build' ? record.emitter.events : appendTrace(kits.traceOf(kitId), record.emitter.events);
         await kits.save(kit, trace);
         record.status = RunStatus.done;
       } on AgentFailure catch (e) {
@@ -213,10 +238,17 @@ class RunManager {
         record.emitter.emit('error', 'Stopped', detail: record.error);
         record.status = RunStatus.failed;
       } finally {
+        if (locks) _busyKits.remove(kitId);
         _release();
       }
     }());
     return record;
+  }
+
+  void _lockable(String kitId) {
+    if (_busyKits.contains(kitId)) {
+      throw LimitExceeded('This kit is already being updated. Wait for that to finish, then try again.');
+    }
   }
 
   RunRecord startBuild(Brief brief, String ip) {
@@ -231,37 +263,40 @@ class RunManager {
   }
 
   RunRecord startRefine(String kitId, String message, String ip) {
-    final kit = kits.get(kitId);
-    if (kit == null) throw StateError('Unknown kit');
+    if (kits.get(kitId) == null) throw StateError('Unknown kit');
     final text = message.trim();
     if (text.isEmpty || text.length > 500) throw ArgumentError('Write a short request (up to 500 characters).');
+    _lockable(kitId);
     _checkLimits(ip);
     return _start('refine', kitId, ip, (r) async {
+      // Read the kit when the run starts, not when it was queued.
+      final kit = kits.get(kitId)!;
       r.emitter.step('Reading your request', '"$text"');
       final refinement = await Refiner(llm).refine(kit, text, r.emitter);
       if (refinement.changes.isEmpty) {
         r.emitter.decision('No changes to make', 'Try naming a title, a time window ("last 3 years"), a size ("more indie") or a market.');
-        return kit.copyWith(version: kit.version + 1);
+        return kit;
       }
       r.emitter.decision('Updating the kit', refinement.changes.join(' · '));
       if (refinement.copyOnly && llm != null) {
-        final qlooAgent = agent;
-        final rewritten = await qlooAgent.rewriteCopy(kit, r.emitter, refinement.copyInstructions);
+        final rewritten = await agent.rewriteCopy(kit, r.emitter, refinement.copyInstructions);
         return rewritten.copyWith(version: kit.version + 1);
       }
       final rebuilt = await agent.build(refinement.brief, r.emitter,
           kitId: kitId, version: kit.version + 1, copyInstructions: refinement.copyInstructions);
+      // A rebuild drops any earlier gut check: it measured the old brief.
       return rebuilt;
     });
   }
 
   RunRecord startGutCheck(String kitId, String ip) {
-    final kit = kits.get(kitId);
-    if (kit == null) throw StateError('Unknown kit');
+    if (kits.get(kitId) == null) throw StateError('Unknown kit');
     final model = llm;
     if (model == null) throw ArgumentError('The gut check needs a language model, and none is configured on this server.');
+    _lockable(kitId);
     _checkLimits(ip);
     return _start('gutcheck', kitId, ip, (r) async {
+      final kit = kits.get(kitId)!;
       final baseline = await GutCheck(model, client).run(kit, r.emitter);
       return kit.copyWith(baseline: baseline);
     });

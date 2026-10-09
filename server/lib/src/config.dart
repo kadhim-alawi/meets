@@ -20,6 +20,7 @@ class Config {
     required this.runsPerDay,
     required this.maxConcurrentRuns,
     required this.qlooMinIntervalMs,
+    this.trustedProxyHops = 1,
   });
 
   final int port;
@@ -41,6 +42,9 @@ class Config {
   final int runsPerDay;
   final int maxConcurrentRuns;
   final int qlooMinIntervalMs;
+
+  /// Proxies that append to X-Forwarded-For (see `net.dart`).
+  final int trustedProxyHops;
 
   bool get llmEnabled => anthropicKey.isNotEmpty;
 
@@ -74,6 +78,7 @@ class Config {
       runsPerDay: i('RUNS_PER_DAY', 400),
       maxConcurrentRuns: i('MAX_CONCURRENT_RUNS', 4),
       qlooMinIntervalMs: i('QLOO_MIN_INTERVAL_MS', 260),
+      trustedProxyHops: i('TRUSTED_PROXY_HOPS', 1),
     );
   }
 }

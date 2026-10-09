@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:meets_core/meets_core.dart';
 import 'package:shelf/shelf.dart';
 
 import 'agent/comps_agent.dart';
 import 'agent/emitter.dart';
+import 'net.dart';
 import 'qloo/qloo_client.dart';
 import 'runs.dart';
 
@@ -141,7 +143,7 @@ class McpEndpoint {
     if (problems.isNotEmpty) {
       return {'isError': true, 'content': [{'type': 'text', 'text': problems.join(' ')}]};
     }
-    final ip = request.headers['x-forwarded-for']?.split(',').first.trim() ?? 'mcp';
+    final ip = clientIp(request);
     final emitter = ListEmitter();
     try {
       runs.reserve(ip);
@@ -161,6 +163,9 @@ class McpEndpoint {
       return {'isError': true, 'content': [{'type': 'text', 'text': 'Qloo error: ${e.message}'}]};
     } on LimitExceeded catch (e) {
       return {'isError': true, 'content': [{'type': 'text', 'text': e.message}]};
+    } on Object catch (e, st) {
+      stderr.writeln('MCP $name failed: $e\n$st');
+      return {'isError': true, 'content': [{'type': 'text', 'text': 'Meets hit an internal error. Please try again.'}]};
     }
   }
 

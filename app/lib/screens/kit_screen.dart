@@ -102,11 +102,10 @@ class _KitScreenState extends State<KitScreen> {
           final kit = snap.kit;
           setState(() {
             _activeRun = null;
-            if (kit != null) {
-              _kit = kit;
-              _trace = [..._trace, ..._runEvents];
-            }
+            if (kit != null) _kit = kit;
           });
+          // The server stitches and renumbers the audit trail; fetch it.
+          if (kit != null) _load();
           final msg = snap.status == RunStatus.failed
               ? (snap.error ?? 'That did not work.')
               : kind == 'refine'
@@ -119,9 +118,11 @@ class _KitScreenState extends State<KitScreen> {
         setState(() => _activeRun = null);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
       });
-    } on ApiError catch (e) {
+    } on Object catch (e) {
+      if (!mounted) return;
       setState(() => _activeRun = null);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      final message = e is ApiError ? e.message : 'Could not reach the Meets server. Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 

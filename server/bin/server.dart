@@ -19,6 +19,7 @@ void main() {
 
 Future<void> _serve() async {
   final config = Config.fromEnvironment();
+  trustedProxyHops = config.trustedProxyHops;
   final images = ImageProxy();
   final kits = KitStore(dataDir: config.dataDir, examplesDir: config.examplesDir, images: images);
   await kits.load();
