@@ -1,0 +1,19 @@
+name: meets_server
+description: Meets API server - Qloo-grounded comps agent, run store and static web host.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  crypto: ^3.0.7
+  http: ^1.6.0
+  meets_core:
+    path: ../packages/meets_core
+  path: ^1.9.1
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+dev_dependencies:
+  lints: ^6.1.0
+  test: ^1.33.0

@@ -1,0 +1,20 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+coverage/
+
+# Secrets and local data
+.env
+.env.*
+!.env.example
+server/data/
+data/
+
+# OS
+.DS_Store

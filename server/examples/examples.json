@@ -1,0 +1,134 @@
+[
+  {
+    "id": "lantern-archive",
+    "kitId": "ex-lantern",
+    "title": "A debut fantasy novel, querying agents",
+    "blurb": "Finds recent, right-sized comps for the query letter and flags the two the author planned to use.",
+    "brief": {
+      "format": "book",
+      "title": "The Lantern Archive",
+      "logline": "A night-shift archivist discovers that her library's uncatalogued wing rearranges itself around grief, and that someone is using it to hide the dead.",
+      "anchors": [
+        {"name": "Piranesi", "kind": "book"},
+        {"name": "The Starless Sea", "kind": "book"}
+      ],
+      "themes": ["dark academia", "magical realism"],
+      "myComps": [
+        {"name": "Harry Potter and the Sorcerer's Stone", "kind": "book"},
+        {"name": "The Night Circus", "kind": "book"}
+      ],
+      "market": "US",
+      "recencyYears": 5,
+      "size": "breakout"
+    }
+  },
+  {
+    "id": "glass-hours",
+    "kitId": "ex-glass",
+    "title": "An indie dream-pop single",
+    "blurb": "\"For fans of\" for the Spotify pitch, the cities to play first, and who to target on release day.",
+    "brief": {
+      "format": "music",
+      "title": "Glass Hours",
+      "logline": "Hazy, synth-washed dream pop about leaving a small town, sung over drum machines and tape-warped guitars.",
+      "anchors": [
+        {"name": "Japanese Breakfast", "kind": "artist"},
+        {"name": "Beach House", "kind": "artist"}
+      ],
+      "themes": ["dream pop"],
+      "market": "US",
+      "recencyYears": 0,
+      "size": "indie"
+    }
+  },
+  {
+    "id": "minor-league",
+    "kitId": "ex-minors",
+    "title": "A workplace comedy series pitch",
+    "blurb": "Series comps for the pitch deck, the audience a buyer will ask about, and the podcasts they listen to.",
+    "brief": {
+      "format": "tv",
+      "title": "Bottom of the Ninth",
+      "logline": "The front office of the worst minor-league baseball team in America has one season to sell 3,000 tickets or the team moves to a casino parking lot.",
+      "anchors": [
+        {"name": "Ted Lasso", "kind": "tvShow"},
+        {"name": "Abbott Elementary", "kind": "tvShow"}
+      ],
+      "market": "US",
+      "recencyYears": 6,
+      "size": "breakout"
+    }
+  },
+  {
+    "id": "night-market",
+    "kitId": "ex-market",
+    "title": "A cozy roguelike on Steam",
+    "blurb": "\"If you like\" for the store page, wishlist targeting, and the streamers' shows this audience watches.",
+    "brief": {
+      "format": "game",
+      "title": "Lanterns of the Night Market",
+      "logline": "A cozy deckbuilder about running a food stall in a floating night market, where every recipe is a card and every regular has a story.",
+      "anchors": [
+        {"name": "Slay the Spire", "kind": "videoGame"},
+        {"name": "Spiritfarer", "kind": "videoGame"}
+      ],
+      "market": "US",
+      "recencyYears": 6,
+      "size": "breakout"
+    }
+  },
+  {
+    "id": "wedding-loop",
+    "kitId": "ex-loop",
+    "title": "A micro-budget horror comedy",
+    "blurb": "Comps a financier will believe, and the audience to show them.",
+    "brief": {
+      "format": "film",
+      "title": "Last Dance",
+      "logline": "A burned-out wedding DJ is trapped in a time loop at the worst reception of his career, and only the bride's grandmother knows why.",
+      "anchors": [
+        {"name": "Palm Springs", "kind": "movie"},
+        {"name": "Ready or Not", "kind": "movie"}
+      ],
+      "market": "US",
+      "recencyYears": 8,
+      "size": "indie"
+    }
+  },
+  {
+    "id": "first-failure",
+    "kitId": "ex-failure",
+    "title": "A founder interview podcast",
+    "blurb": "Show comps for a network pitch, ad swaps, and a sponsor shortlist the audience already loves.",
+    "brief": {
+      "format": "podcast",
+      "title": "First Failure",
+      "logline": "Each week a well-known founder tells the full story of the startup that failed before the one that worked.",
+      "anchors": [
+        {"name": "How I Built This", "kind": "podcast"},
+        {"name": "This Week in Startups", "kind": "podcast"}
+      ],
+      "market": "US",
+      "recencyYears": 0,
+      "size": "breakout"
+    }
+  },
+  {
+    "id": "sunday-best",
+    "kitId": "ex-standup",
+    "title": "A clean stand-up hour",
+    "blurb": "Comedians to bill with, the shows the crowd watches, and where to book the tour.",
+    "brief": {
+      "format": "standup",
+      "title": "Sunday Best",
+      "logline": "Clean, family-first storytelling stand-up about church potlucks, overbearing aunts and raising teenagers.",
+      "anchors": [
+        {"name": "Cedric the Entertainer", "kind": "person"},
+        {"name": "Nate Bargatze", "kind": "person"}
+      ],
+      "market": "US",
+      "recencyYears": 0,
+      "size": "breakout"
+    }
+  }
+]
