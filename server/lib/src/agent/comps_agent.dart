@@ -144,8 +144,20 @@ class CompsAgent {
     final audienceFuture = _audience(qloo, anchorIds, anchors, format, emit, notes);
     final marketsFuture = _markets(qloo, anchorIds, brief, emit, notes);
 
-    final primary = await primaryFuture;
+    final DomainScan primary;
+    try {
+      primary = await primaryFuture;
+    } catch (_) {
+      // Don't leave the sibling scans' errors unobserved.
+      for (final f in <Future<Object?>>[crossFuture, channelFuture, audienceFuture, marketsFuture]) {
+        f.ignore();
+      }
+      rethrow;
+    }
     if (primary.items.isEmpty) {
+      for (final f in <Future<Object?>>[crossFuture, channelFuture, audienceFuture, marketsFuture]) {
+        f.ignore();
+      }
       throw AgentFailure('Qloo returned no ${format.primary.plural.toLowerCase()} for these touchstones. Try adding a better-known one.');
     }
 

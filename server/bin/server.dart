@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:meets_server/meets_server.dart';
@@ -5,7 +6,18 @@ import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 
-Future<void> main() async {
+var _listening = false;
+
+void main() {
+  runZonedGuarded(_serve, (error, stack) {
+    stderr.writeln('Unhandled error: $error\n$stack');
+    // Fail fast during startup; once serving, a stray async error must never
+    // take the demo down.
+    if (!_listening) exit(1);
+  });
+}
+
+Future<void> _serve() async {
   final config = Config.fromEnvironment();
   final images = ImageProxy();
   final kits = KitStore(dataDir: config.dataDir, examplesDir: config.examplesDir, images: images);
@@ -59,6 +71,7 @@ Future<void> main() async {
 
   final server = await io.serve(handler, config.host, config.port);
   server.autoCompress = true;
+  _listening = true;
   stdout.writeln('Meets listening on http://${server.address.host}:${server.port} '
       '(qloo: ${config.qlooMode}, llm: ${llm == null ? 'off' : llm.model})');
 }
