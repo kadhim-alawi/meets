@@ -53,6 +53,25 @@ Entity? pickMatch(String name, List<Entity> results, {EntityKind? kind, EntityKi
   return words.isNotEmpty && overlap / words.length >= 0.5 ? first : null;
 }
 
+/// Picks the tag the creator meant by [theme]. Qloo can return several tags
+/// with the same name in different families (Jazz the genre, Jazz the
+/// keyword ...), so among exact names the earlier family below wins.
+TagRef? pickThemeTag(String theme, List<TagRef> tags) {
+  if (tags.isEmpty) return null;
+  const families = ['genre', 'subgenre', 'keyword', 'theme', 'style'];
+  int rank(TagRef t) {
+    final i = families.indexOf(t.family);
+    return i < 0 ? families.length : i;
+  }
+
+  final target = normalizeTitle(theme);
+  TagRef? exact;
+  for (final t in tags) {
+    if (normalizeTitle(t.name) == target && (exact == null || rank(t) < rank(exact))) exact = t;
+  }
+  return exact ?? tags.firstWhere((t) => families.contains(t.family), orElse: () => tags.first);
+}
+
 /// Merges two affinity-ranked lists of the same request family.
 List<Entity> mergeByAffinity(List<Entity> a, List<Entity> b) {
   final byId = <String, Entity>{};
@@ -276,11 +295,7 @@ class CompsAgent {
     final found = await Future.wait(themes.map((theme) async {
       try {
         final tags = await qloo.tags(theme, parent: format.primary, take: 6, label: 'Matched the theme "$theme" to a Qloo tag');
-        if (tags.isEmpty) return null;
-        final target = normalizeTitle(theme);
-        return tags.firstWhere((t) => normalizeTitle(t.name) == target,
-            orElse: () => tags.firstWhere((t) => const {'genre', 'subgenre', 'keyword', 'theme', 'style'}.contains(t.family),
-                orElse: () => tags.first));
+        return pickThemeTag(theme, tags);
       } on QlooException {
         return null;
       }

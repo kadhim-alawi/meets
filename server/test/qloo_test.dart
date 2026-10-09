@@ -277,6 +277,20 @@ void main() {
       expect(pickMatch('Quiet Ponds', [e('1', 'Loud Mountains', EntityKind.book, 0.9)]), isNull);
     });
 
+    TagRef tag(String family, String name) =>
+        TagRef(id: 'urn:tag:$family:media:${name.toLowerCase()}', name: name, type: 'urn:tag:$family:media');
+
+    test('prefers the genre when several tags share the theme name', () {
+      final tags = [tag('keyword', 'Jazz'), tag('audience', 'Jazz'), tag('genre', 'Jazz'), tag('genre', 'Jazz Fusion')];
+      expect(pickThemeTag('jazz', tags)!.id, 'urn:tag:genre:media:jazz');
+    });
+
+    test('falls back to the first descriptive tag when no name matches', () {
+      final tags = [tag('audience', 'Night owls'), tag('keyword', 'Heists'), tag('genre', 'Heist thriller')];
+      expect(pickThemeTag('heist', tags)!.id, 'urn:tag:keyword:media:heists');
+      expect(pickThemeTag('heist', const []), isNull);
+    });
+
     test('merges lists by affinity without duplicates', () {
       final a = [const Entity(id: '1', name: 'A', kind: EntityKind.book, affinity: 0.9)];
       final b = [
