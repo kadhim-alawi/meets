@@ -1,0 +1,32 @@
+# fly launch --no-deploy --copy-config && fly volumes create meets_data --size 1
+# fly secrets set QLOO_API_KEY=... ANTHROPIC_API_KEY=... PUBLIC_URL=https://<app>.fly.dev && fly deploy
+app = "meets-comps"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  QLOO_BASE_URL = "https://hackathon.api.qloo.com"
+  LLM_MODEL = "claude-opus-5-5"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[mounts]]
+  source = "meets_data"
+  destination = "/srv/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

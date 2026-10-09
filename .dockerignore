@@ -1,0 +1,9 @@
+**/.dart_tool
+**/build
+**/data
+.git
+.env
+.env.*
+app/android
+app/ios
+docs/screenshots

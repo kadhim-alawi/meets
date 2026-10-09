@@ -122,12 +122,12 @@ class TargetingSection extends StatelessWidget {
           subtitle: 'Interest and lookalike lists for the platforms that matter for this format, taken straight from the scans.',
         ),
         if (wide && panels.length > 1)
-          Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            children: [
-              for (final p in panels) SizedBox(width: (context.width.clamp(0, 1180) - 340) / 2, child: p),
-            ],
+          LayoutBuilder(
+            builder: (context, box) => Wrap(
+              spacing: 14,
+              runSpacing: 14,
+              children: [for (final p in panels) SizedBox(width: (box.maxWidth - 14) / 2, child: p)],
+            ),
           )
         else
           for (final p in panels) Padding(padding: const EdgeInsets.only(bottom: 12), child: p),

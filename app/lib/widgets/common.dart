@@ -110,7 +110,9 @@ class Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 12, color: filled ? c.surface : tone), const SizedBox(width: 4)],
-          Text(label, style: Fonts.monoW(11, weight: FontWeight.w600, color: filled ? c.surface : tone, spacing: 0.2)),
+          Flexible(
+            child: Text(label, style: Fonts.monoW(11, weight: FontWeight.w600, color: filled ? c.surface : tone, spacing: 0.2)),
+          ),
         ],
       ),
     );

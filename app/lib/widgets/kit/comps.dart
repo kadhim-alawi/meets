@@ -203,8 +203,13 @@ class _ChartPainter extends CustomPainter {
           (_SweetSpotChartState.bandX(entry.value.$1) + _SweetSpotChartState.bandX(entry.value.$2)) / 2 * plot.width;
       labels.add((mid, entry.key.label));
     }
+    // Skip labels that would collide on narrow screens.
+    var lastRight = double.negativeInfinity;
     for (final (x, label) in labels) {
+      final w = _measure(label);
+      if (x - w / 2 < lastRight + 6) continue;
       _text(canvas, label, Offset(x, plot.bottom + 8), colors.faint, center: true);
+      lastRight = x + w / 2;
     }
     // Fit gridlines.
     for (final f in [0.25, 0.5, 0.75, 1.0]) {
@@ -221,6 +226,9 @@ class _ChartPainter extends CustomPainter {
       canvas.drawCircle(o, r, Paint()..color = color);
     }
   }
+
+  double _measure(String s) =>
+      (TextPainter(text: TextSpan(text: s, style: Fonts.monoW(10.5)), textDirection: TextDirection.ltr)..layout()).width;
 
   void _text(Canvas canvas, String s, Offset at, Color color, {bool center = false, bool right = false}) {
     final tp = TextPainter(
