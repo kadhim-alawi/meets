@@ -1,0 +1,9 @@
+# Platform icons and launch images: the same logo at many sizes, nothing to extract
+app/android/app/src/main/res/
+app/ios/Runner/Assets.xcassets/
+app/web/favicon.png
+app/web/icons/
+app/assets/icon-1024.png
+
+# Third-party font licence boilerplate
+app/assets/fonts/
