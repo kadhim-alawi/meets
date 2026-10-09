@@ -217,29 +217,7 @@ class CompsAgent {
       durationMs: DateTime.now().difference(started).inMilliseconds,
       model: model?.model,
     );
-    kit = CompKit(
-      id: kit.id,
-      createdAt: kit.createdAt,
-      brief: kit.brief,
-      mode: kit.mode,
-      version: kit.version,
-      anchors: kit.anchors,
-      themes: kit.themes,
-      primary: kit.primary,
-      cross: kit.cross,
-      channels: kit.channels,
-      pairing: kit.pairing,
-      audience: kit.audience,
-      markets: kit.markets,
-      compCheck: kit.compCheck,
-      copy: kit.copy,
-      targeting: composer.targeting(kit),
-      baseline: kit.baseline,
-      headline: kit.headline,
-      summary: kit.summary,
-      notes: allNotes,
-      stats: stats,
-    );
+    kit = kit.copyWith(targeting: composer.targeting(kit), notes: allNotes, stats: stats);
     emit.emit('done', 'Comp kit ready',
         detail: '${stats.qlooCalls} Qloo calls${stats.cachedCalls > 0 ? ' (${stats.cachedCalls} from cache)' : ''} · ${(stats.durationMs / 1000).toStringAsFixed(1)}s');
     return kit;

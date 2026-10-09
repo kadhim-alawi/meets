@@ -500,6 +500,7 @@ class CompKit {
   CompKit copyWith({
     int? version,
     List<CopyBlock>? copy,
+    List<TargetList>? targeting,
     BaselineResult? baseline,
     String? headline,
     String? summary,
@@ -523,7 +524,7 @@ class CompKit {
         markets: markets,
         compCheck: compCheck,
         copy: copy ?? this.copy,
-        targeting: targeting,
+        targeting: targeting ?? this.targeting,
         baseline: baseline ?? this.baseline,
         headline: headline ?? this.headline,
         summary: summary ?? this.summary,
