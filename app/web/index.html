@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meets — comps & first fans for anything you make</title>
+  <meta name="description" content="An agent that finds right-sized, recent comps and the first audience for your book, film, show, music, game, podcast or stand-up — measured with Qloo's taste graph.">
+  <meta property="og:title" content="Meets — comps & first fans for anything you make">
+  <meta property="og:description" content="Every pitch says “it's X meets Y.” Meets finds the right X and Y, and the people who'll love you. Powered by Qloo Taste AI.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#F4EFE6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Meets">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; height: 100%; background: #F4EFE6; }
+    #splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;
+      font-family: Georgia, 'Times New Roman', serif; color: #18160F; transition: opacity .35s ease; }
+    #splash .mark { display: flex; align-items: center; gap: 14px; font-style: italic; font-size: 44px; }
+    #splash .rings { position: relative; width: 52px; height: 34px; }
+    #splash .rings i { position: absolute; top: 2px; width: 30px; height: 30px; border-radius: 50%; border: 4px solid #D9481F; box-sizing: border-box; }
+    #splash .rings i + i { left: 20px; border-color: #18160F; }
+    #splash p { font: 500 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; color: #615A4F; margin-top: 18px; }
+    @media (prefers-reduced-motion: no-preference) { #splash .rings i { animation: pulse 1.4s ease-in-out infinite; } #splash .rings i + i { animation-delay: .2s; } }
+    @keyframes pulse { 50% { transform: scale(.88); } }
+  </style>
+</head>
+<body>
+  <div id="splash" aria-hidden="true">
+    <div class="mark"><span class="rings"><i></i><i></i></span>meets</div>
+    <p>LOADING THE TASTE GRAPH…</p>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('splash');
+      if (s) { s.style.opacity = '0'; setTimeout(function () { s.remove(); }, 400); }
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

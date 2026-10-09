@@ -38,7 +38,10 @@ class Composer {
     final f = kit.brief.format;
     final pair = kit.pairing;
     final title = kit.brief.title.isEmpty ? 'Your ${f.noun}' : kit.brief.title;
-    if (pair != null) return '$title is ${pair.line} — for ${f.audience} who want both.';
+    if (pair != null) {
+      final sweet = sweetSpots(kit.primary).length;
+      return '$title sits in a ${kit.brief.size.label.toLowerCase()} lane with $sweet right-sized comps — lead with ${pair.a.entity.name} and ${pair.b.entity.name}.';
+    }
     final top = sweetSpots(kit.primary, take: 2).map((c) => c.entity.name).toList();
     return top.isEmpty ? '$title, measured against Qloo\'s taste graph.' : '$title sits next to ${joinNames(top)}.';
   }
