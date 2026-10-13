@@ -73,7 +73,8 @@ class Config {
       dataDir: s('DATA_DIR', 'data'),
       webDir: s('WEB_DIR', '../app/build/web'),
       examplesDir: s('EXAMPLES_DIR', 'examples'),
-      publicUrl: s('PUBLIC_URL', ''),
+      // Render sets RENDER_EXTERNAL_URL itself, so the first deploy needs no guess.
+      publicUrl: s('PUBLIC_URL', s('RENDER_EXTERNAL_URL', '')),
       runsPerHourPerIp: i('RUNS_PER_HOUR_PER_IP', 20),
       runsPerDay: i('RUNS_PER_DAY', 400),
       maxConcurrentRuns: i('MAX_CONCURRENT_RUNS', 4),

@@ -13,8 +13,6 @@ services:
         sync: false
       - key: QLOO_BASE_URL
         value: https://hackathon.api.qloo.com
-      - key: PUBLIC_URL
-        sync: false
       - key: LLM_MODEL
         value: claude-sonnet-5-5
     disk:
