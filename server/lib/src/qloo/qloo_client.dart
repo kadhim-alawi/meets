@@ -61,7 +61,9 @@ class QlooClient {
     this.cacheTtl = const Duration(days: 3),
     this.cacheDir,
     this.maxMemoryEntries = 4000,
-    Duration timeout = const Duration(seconds: 25),
+    // A heavy insights request Qloo hasn't seen can take over a minute the
+    // first time (71s measured) and ~10s after; a shorter limit never lets it finish.
+    Duration timeout = const Duration(seconds: 90),
   })  : _apiKey = apiKey,
         _base = Uri.parse(baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl),
         _minInterval = minInterval,
