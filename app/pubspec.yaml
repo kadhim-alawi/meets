@@ -60,10 +60,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   fonts:
-    - family: InstrumentSerif
+    - family: BarlowCondensed
       fonts:
-        - asset: assets/fonts/InstrumentSerif-Regular.ttf
-        - asset: assets/fonts/InstrumentSerif-Italic.ttf
+        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BarlowCondensed-SemiBoldItalic.ttf
+          weight: 600
           style: italic
     - family: InstrumentSans
       fonts:
@@ -74,6 +76,6 @@ flutter:
       fonts:
         - asset: assets/fonts/JetBrainsMono.ttf
   assets:
-    - assets/fonts/OFL-InstrumentSerif.txt
+    - assets/fonts/OFL-BarlowCondensed.txt
     - assets/fonts/OFL-InstrumentSans.txt
     - assets/fonts/OFL-JetBrainsMono.txt

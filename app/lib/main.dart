@@ -14,7 +14,7 @@ import 'theme.dart';
 void main() {
   usePathUrlStrategy();
   LicenseRegistry.addLicense(() async* {
-    for (final font in ['InstrumentSerif', 'InstrumentSans', 'JetBrainsMono']) {
+    for (final font in ['BarlowCondensed', 'InstrumentSans', 'JetBrainsMono']) {
       final text = await rootBundle.loadString('assets/fonts/OFL-$font.txt');
       yield LicenseEntryWithLineBreaks([font], text);
     }
@@ -59,9 +59,7 @@ class MeetsApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Meets — comps & first fans, powered by Qloo',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(Brightness.light),
-      darkTheme: buildTheme(Brightness.dark),
-      themeMode: kIsWeb ? ThemeMode.light : ThemeMode.system,
+      theme: buildTheme(),
       routerConfig: router,
       scrollBehavior: const _DragEverywhere(),
     );

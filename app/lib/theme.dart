@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens. Warm "editorial" palette: paper, ink, a coral accent for
-/// action, teal for good news, gold for discoveries.
+/// Design tokens. "Screening room" palette: a near-black room, projector-white
+/// ink, an acid-lime accent for action, teal for good news, gold for discoveries.
 @immutable
 class MeetsColors extends ThemeExtension<MeetsColors> {
   const MeetsColors({
@@ -32,34 +32,19 @@ class MeetsColors extends ThemeExtension<MeetsColors> {
   final Color gold;
   final Color danger;
 
-  static const light = MeetsColors(
-    paper: Color(0xFFF4EFE6),
-    surface: Color(0xFFFFFCF6),
-    surfaceAlt: Color(0xFFEDE6D9),
-    ink: Color(0xFF18160F),
-    muted: Color(0xFF615A4F),
-    faint: Color(0xFF948B7D),
-    line: Color(0xFFDDD4C4),
-    accent: Color(0xFFD9481F),
-    onAccent: Color(0xFFFFF8F0),
-    teal: Color(0xFF1C6B66),
-    gold: Color(0xFFA77B0E),
-    danger: Color(0xFFB3261E),
-  );
-
-  static const dark = MeetsColors(
-    paper: Color(0xFF12110E),
-    surface: Color(0xFF1B1915),
-    surfaceAlt: Color(0xFF26231D),
-    ink: Color(0xFFF2ECE1),
-    muted: Color(0xFFB2A998),
-    faint: Color(0xFF7D7567),
-    line: Color(0xFF332F27),
-    accent: Color(0xFFFF6B43),
-    onAccent: Color(0xFF1A0E08),
-    teal: Color(0xFF5DBDB3),
-    gold: Color(0xFFE5BF4D),
-    danger: Color(0xFFFF8A80),
+  static const screen = MeetsColors(
+    paper: Color(0xFF0C0C0E),
+    surface: Color(0xFF16161A),
+    surfaceAlt: Color(0xFF202026),
+    ink: Color(0xFFF3EFE6),
+    muted: Color(0xFFA9A59C),
+    faint: Color(0xFF7B786F),
+    line: Color(0xFF2B2B31),
+    accent: Color(0xFFD2FF3D),
+    onAccent: Color(0xFF0C0C0E),
+    teal: Color(0xFF4FC9BC),
+    gold: Color(0xFFF0B94A),
+    danger: Color(0xFFFF7B70),
   );
 
   @override
@@ -97,7 +82,7 @@ extension MeetsThemeX on BuildContext {
 /// Font helpers. The sans and mono families are variable fonts, so weight is
 /// set through the `wght` axis as well as [FontWeight].
 class Fonts {
-  static const serif = 'InstrumentSerif';
+  static const condensed = 'BarlowCondensed';
   static const sans = 'InstrumentSans';
   static const mono = 'JetBrainsMono';
 
@@ -122,17 +107,19 @@ class Fonts {
       );
 
   static TextStyle display(double size, {Color? color, bool italic = false, double height = 1.02}) => TextStyle(
-        fontFamily: serif,
+        fontFamily: condensed,
         fontSize: size,
+        fontWeight: FontWeight.w600,
         height: height,
-        letterSpacing: -0.4,
+        letterSpacing: -0.2,
         fontStyle: italic ? FontStyle.italic : FontStyle.normal,
         color: color,
       );
 }
 
-ThemeData buildTheme(Brightness brightness) {
-  final c = brightness == Brightness.dark ? MeetsColors.dark : MeetsColors.light;
+ThemeData buildTheme() {
+  const c = MeetsColors.screen;
+  const brightness = Brightness.dark;
   final scheme = ColorScheme(
     brightness: brightness,
     primary: c.accent,

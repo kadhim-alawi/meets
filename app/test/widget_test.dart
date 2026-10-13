@@ -8,7 +8,7 @@ import 'package:meets_app/widgets/timeline.dart';
 import 'package:meets_core/meets_core.dart';
 
 Widget host(Widget child, {double width = 1200}) => MaterialApp(
-      theme: buildTheme(Brightness.light),
+      theme: buildTheme(),
       home: MediaQuery(
         data: MediaQueryData(size: Size(width, 900)),
         child: Scaffold(body: SingleChildScrollView(child: child)),
@@ -101,9 +101,9 @@ void main() {
     expect(find.text('Dug deeper'), findsOneWidget);
   });
 
-  testWidgets('logo and pills render in dark theme', (tester) async {
+  testWidgets('logo and pills render', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      theme: buildTheme(Brightness.dark),
+      theme: buildTheme(),
       home: const Scaffold(body: Column(children: [MeetsLogo(), Pill('Sweet spot')])),
     ));
     expect(find.text('meets'), findsOneWidget);

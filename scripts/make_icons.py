@@ -1,11 +1,11 @@
-"""Generates the Meets app icons (two overlapping rings on paper)."""
+"""Generates the Meets app icons (two overlapping rings on the dark screen)."""
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-PAPER = (244, 239, 230, 255)
-CORAL = (217, 72, 31, 255)
-INK = (24, 22, 15, 255)
+PAPER = (12, 12, 14, 255)
+LIME = (210, 255, 61, 255)
+INK = (243, 239, 230, 255)
 
 
 def icon(size: int, maskable: bool = False) -> Image.Image:
@@ -20,7 +20,7 @@ def icon(size: int, maskable: bool = False) -> Image.Image:
     cy = s / 2
     cx1 = s * inset + r + stroke / 2
     cx2 = s - s * inset - r - stroke / 2
-    for cx, color in ((cx1, CORAL), (cx2, INK)):
+    for cx, color in ((cx1, LIME), (cx2, INK)):
         d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=color, width=stroke)
     return img.resize((size, size), Image.LANCZOS)
 

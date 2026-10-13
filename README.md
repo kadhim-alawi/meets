@@ -149,6 +149,6 @@ CI runs all three on every push (`.github/workflows/ci.yml`).
 
 ## Credits
 
-Taste data: [Qloo](https://www.qloo.com/) Taste AI (hackathon tier). Writing model: Claude (Anthropic). Fonts: Instrument Serif, Instrument Sans, JetBrains Mono (SIL OFL). Built with substantial help from Claude Code.
+Taste data: [Qloo](https://www.qloo.com/) Taste AI (hackathon tier). Writing model: Claude (Anthropic). Fonts: Barlow Condensed, Instrument Sans, JetBrains Mono (SIL OFL). Built with substantial help from Claude Code.
 
 MIT licensed. See [LICENSE](LICENSE).
