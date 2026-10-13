@@ -26,7 +26,7 @@ COPY packages packages
 COPY server server
 COPY app app
 RUN cd app && flutter build web --release --no-web-resources-cdn
-RUN cd server && dart compile exe bin/server.dart -o /out/meets-server
+RUN mkdir -p /out && cd server && dart compile exe bin/server.dart -o /out/meets-server
 
 # ---- runtime ------------------------------------------------------------------
 FROM debian:bookworm-slim
