@@ -55,9 +55,10 @@ Entity? pickMatch(String name, List<Entity> results, {EntityKind? kind, EntityKi
 
 /// Picks the tag the creator meant by [theme]. Qloo can return several tags
 /// with the same name in different families (Jazz the genre, Jazz the
-/// keyword ...), so among exact names the earlier family below wins.
+/// keyword ...), so among exact names the earlier family below wins. Without
+/// an exact name, a tag must contain every word of the theme: Qloo answers
+/// "dark academia" with "Dark", and a wrong tag skews the scan more than none.
 TagRef? pickThemeTag(String theme, List<TagRef> tags) {
-  if (tags.isEmpty) return null;
   const families = ['genre', 'subgenre', 'keyword', 'theme', 'style'];
   int rank(TagRef t) {
     final i = families.indexOf(t.family);
@@ -69,7 +70,8 @@ TagRef? pickThemeTag(String theme, List<TagRef> tags) {
   for (final t in tags) {
     if (normalizeTitle(t.name) == target && (exact == null || rank(t) < rank(exact))) exact = t;
   }
-  return exact ?? tags.firstWhere((t) => families.contains(t.family), orElse: () => tags.first);
+  final words = target.split(' ');
+  return exact ?? tags.where((t) => words.every(normalizeTitle(t.name).contains)).firstOrNull;
 }
 
 /// Merges two affinity-ranked lists of the same request family.

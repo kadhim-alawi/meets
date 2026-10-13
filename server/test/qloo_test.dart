@@ -258,6 +258,21 @@ void main() {
       expect(list.single.creator, 'Susanna Clarke');
       expect(list.single.year, 2020);
     });
+
+    test('creators from disambiguation, as the live API sends books and films', () {
+      Map<String, Object?> e(String id, String type, String disambiguation) =>
+          {'entity_id': id, 'name': id, 'types': ['urn:entity:$type'], 'disambiguation': disambiguation, 'properties': {}};
+      final list = parseSearch({
+        'results': [
+          e('B', 'book', '2020, Lindsay  Ellis'),
+          e('M', 'movie', '2019, Greta Gerwig'),
+          e('T', 'tv_show', '2017,2021'),
+          e('P', 'person', '1981-11-18'),
+          e('A', 'artist', 'mxmtoon'),
+        ],
+      });
+      expect(list.map((x) => x.creator), ['Lindsay Ellis', 'Greta Gerwig', null, null, null]);
+    });
   });
 
   group('matching', () {
@@ -285,10 +300,12 @@ void main() {
       expect(pickThemeTag('jazz', tags)!.id, 'urn:tag:genre:media:jazz');
     });
 
-    test('falls back to the first descriptive tag when no name matches', () {
+    test('without an exact name, takes only a tag containing every theme word', () {
       final tags = [tag('audience', 'Night owls'), tag('keyword', 'Heists'), tag('genre', 'Heist thriller')];
       expect(pickThemeTag('heist', tags)!.id, 'urn:tag:keyword:media:heists');
       expect(pickThemeTag('heist', const []), isNull);
+      // What the live API returns for "dark academia".
+      expect(pickThemeTag('dark academia', [tag('genre', 'Dark'), tag('genre', 'Dark Fantasy'), tag('genre', 'Academia')]), isNull);
     });
 
     test('merges lists by affinity without duplicates', () {

@@ -104,6 +104,14 @@ String? _creatorOf(Json props) {
   return null;
 }
 
+/// Books and films carry no author or director property; Qloo's
+/// `disambiguation` reads "2020, Susanna Clarke" instead. TV ("2017,2021")
+/// and people (a birth date) have no name after the year, so they don't match.
+String? _creatorFromDisambiguation(Object? raw) {
+  final m = RegExp(r'^\d{4}(?:-\d\d-\d\d)?,\s*(.*\p{L}.*)$', unicode: true).firstMatch(asString(raw) ?? '');
+  return m?.group(1)!.replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
 String? _english(Object? values) {
   for (final item in asList(values)) {
     final json = asJson(item);
@@ -176,7 +184,7 @@ Entity? parseEntity(Object? raw, {int maxTags = 12}) {
     name: name.trim(),
     kind: _kindOf(json),
     year: _yearOf(props),
-    creator: _creatorOf(props),
+    creator: _creatorOf(props) ?? _creatorFromDisambiguation(json['disambiguation']),
     description: _descriptionOf(props),
     imageUrl: _imageOf(props),
     popularity: asDouble(json['popularity']) ?? asDouble(props['popularity']),
