@@ -550,24 +550,29 @@ class CompsAgent {
       }
     }));
 
-    final byKind = <EntityKind, List<Entity>>{};
+    final byKind = <EntityKind, List<String>>{};
     for (final (_, e) in resolved) {
-      if (e != null) (byKind[e.kind] ??= []).add(e);
+      if (e != null) (byKind[e.kind] ??= []).add(e.id);
     }
+    // Meets' own comps ride in the same request: affinities from different
+    // signals sit on different scales and can't be compared.
+    // shortcut: a comp of another kind is still ranked against these, fine while the composer defaults comps to the primary kind.
+    final meetsIds = primary.items.map((c) => c.entity.id).toList();
+    if (byKind.isNotEmpty) (byKind[format.primary] ??= []).addAll(meetsIds);
     final fits = <String, double>{};
     for (final entry in byKind.entries) {
       try {
         fits.addAll(await qloo.fitOf(
             kind: entry.key,
             signalIds: anchorIds,
-            candidateIds: entry.value.map((e) => e.id).toList(),
+            candidateIds: entry.value.toSet().toList(),
             label: 'Scored your ${entry.key.plural.toLowerCase()} against the audience'));
       } on QlooException catch (e) {
         emit.warn('Could not score your comps', e.message);
       }
     }
 
-    final reference = primary.items.map((c) => c.entity.affinity).whereType<double>().toList()..sort();
+    final reference = meetsIds.map((id) => fits[id]).whereType<double>().toList()..sort();
     double? percentile(double? aff) {
       if (aff == null || reference.isEmpty) return aff;
       final below = reference.where((r) => r <= aff).length;

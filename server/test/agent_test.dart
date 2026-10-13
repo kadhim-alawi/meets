@@ -10,6 +10,19 @@ import 'package:test/test.dart';
 
 QlooClient previewClient() => QlooClient(apiKey: 'preview', mode: 'preview', transport: previewTransport, minInterval: Duration.zero);
 
+/// Like the live API: a scoring request (no themes or ages in the signal)
+/// returns lower affinities than the main scan for the very same titles.
+QlooClient scaledClient() => QlooClient(apiKey: 'preview', mode: 'preview', minInterval: Duration.zero, transport: (uri, headers) async {
+      final res = await previewTransport(uri, headers);
+      if (!uri.queryParameters.containsKey('filter.results.entities')) return res;
+      final json = jsonDecode(res.body) as Map<String, dynamic>;
+      for (final e in (json['results'] as Map<String, dynamic>)['entities'] as List) {
+        final q = (e as Map<String, dynamic>)['query'] as Map<String, dynamic>;
+        q['affinity'] = (q['affinity'] as num) - 0.3;
+      }
+      return QlooHttpResponse(res.status, jsonEncode(json), res.headers);
+    });
+
 const bookBrief = Brief(
   format: WorkFormat.book,
   title: 'The Lantern Archive',
@@ -21,7 +34,7 @@ const bookBrief = Brief(
 
 /// A fake Messages API: answers the planner, analyst and gut check with tool
 /// calls, the way the real model is instructed to.
-MockClient fakeAnthropic({List<Json>? captured}) => MockClient((request) async {
+MockClient fakeAnthropic({List<Json>? captured, List<String> extraTitles = const []}) => MockClient((request) async {
       final body = jsonDecode(request.body) as Map<String, dynamic>;
       captured?.add(body);
       expect(request.headers['x-api-key'], 'test-key');
@@ -69,6 +82,7 @@ MockClient fakeAnthropic({List<Json>? captured}) => MockClient((request) async {
                 {'name': 'The Night Circus'},
                 {'name': 'Babel'},
                 {'name': 'A Book That Does Not Exist Anywhere'},
+                for (final t in extraTitles) {'name': t},
               ],
             })),
             200);
@@ -157,15 +171,43 @@ void main() {
     });
 
     test('gut check scores the plain LLM picks against Qloo', () async {
-      final client = previewClient();
-      final llm = LlmClient(apiKey: 'test-key', client: fakeAnthropic());
-      final kit = await CompsAgent(client: client, clock: () => DateTime(2026, 10, 9)).build(bookBrief, ListEmitter(), kitId: 'k3');
+      final client = scaledClient();
+      // With a model, the planner adds Babel as a touchstone the creator never named.
+      final kit = await CompsAgent(client: client, llm: LlmClient(apiKey: 'test-key', client: fakeAnthropic()), clock: () => DateTime(2026, 10, 9))
+          .build(bookBrief, ListEmitter(), kitId: 'k3');
+      final meetsComp = kit.primary.items.first.entity.name;
+      final sent = <Json>[];
+      final llm = LlmClient(apiKey: 'test-key', client: fakeAnthropic(captured: sent, extraTitles: ['Piranesi', meetsComp]));
       final result = await GutCheck(llm, client).run(kit, ListEmitter(), currentYear: 2026);
       final verdicts = {for (final i in result.items) i.name: i.verdict};
       expect(verdicts["Harry Potter and the Sorcerer's Stone"], 'too_big');
       expect(verdicts['The Night Circus'], 'dated');
-      expect(result.summary, contains('of 4'));
+      expect(verdicts['Piranesi'], 'touchstone');
+      expect(verdicts['Babel'], 'touchstone');
+      // Scored in the same request as Meets' own comps, so one of them can't rank below them all.
+      expect(result.items.firstWhere((i) => i.name == meetsComp).fit, greaterThan(0));
+      expect(result.summary, contains('of 6'));
+      expect(result.summary, contains('2 are already a touchstone in this kit'));
+      // The plain model sees only what the creator typed, not Meets' Qloo-verified suggestions.
+      final prompt = jsonEncode(sent.single['messages']);
+      expect(prompt, contains('Piranesi'));
+      expect(prompt, isNot(contains('Babel')));
+      expect(prompt, contains('other than those'));
     });
+  });
+
+  test('comp check scores your comps on the same scale as Meets\' comps', () async {
+    final client = scaledClient();
+    final agent = CompsAgent(client: client, clock: () => DateTime(2026, 10, 9));
+    final first = await agent.build(bookBrief.copyWith(myComps: const []), ListEmitter(), kitId: 'k4');
+    final found = first.primary.items.map((c) => c.entity).toList();
+    // Every comp Meets found, entered as the creator's own: none can sit below all of them.
+    final kit = await agent.build(
+        bookBrief.copyWith(myComps: [for (final e in found.take(5)) AnchorInput(name: e.name, kind: e.kind, id: e.id)]), ListEmitter(),
+        kitId: 'k5');
+    for (final v in kit.compCheck) {
+      expect(v.reasons, isNot(contains('Weaker audience overlap than any comp Meets found.')), reason: v.input);
+    }
   });
 
   group('refine heuristics', () {

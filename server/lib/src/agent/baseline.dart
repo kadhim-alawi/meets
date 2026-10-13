@@ -42,10 +42,11 @@ class GutCheck {
     final b = kit.brief;
     final f = b.format;
     emit.step('Asking a plain LLM for comps', 'Same brief, no Qloo, no tools.');
+    // Only what the creator typed: Meets' own Qloo-verified suggestions would leak into the baseline.
+    final own = b.anchors.where((a) => !a.suggested).map((a) => a.name).toList();
     final prompt = '''
 I'm pitching a ${f.label.toLowerCase()}${b.title.isEmpty ? '' : ' called "${b.title}"'}.
-${b.logline.isEmpty ? '' : 'It is about: ${b.logline}\n'}It's like: ${kit.anchors.map((a) => a.name).join(', ')}.
-Give me 6 comparable ${f.primary.plural.toLowerCase()} I should use as comps${b.recencyYears > 0 ? ' (ideally from the last ${b.recencyYears} years)' : ''}.''';
+${b.logline.isEmpty ? '' : 'It is about: ${b.logline}\n'}${own.isEmpty ? '' : "It's like: ${own.join(', ')}.\n"}Give me 6 comparable ${f.primary.plural.toLowerCase()}${own.isEmpty ? '' : ' other than those'} that I should use as comps${b.recencyYears > 0 ? ' (ideally from the last ${b.recencyYears} years)' : ''}.''';
     emit.llm('Asked the model without tools', data: {'call': true, 'model': llm.model});
     final response = await llm.create(
       system: _baselineSystem,
@@ -77,20 +78,24 @@ Give me 6 comparable ${f.primary.plural.toLowerCase()} I should use as comps${b.
         return (name, null);
       }
     }));
-    final ids = resolved.map((r) => r.$2?.id).whereType<String>().toList();
+    final anchorIds = kit.anchors.map((a) => a.id).toSet();
+    final ids = resolved.map((r) => r.$2?.id).whereType<String>().where((id) => !anchorIds.contains(id)).toList();
+    final meetsIds = kit.primary.items.map((c) => c.entity.id).toList();
     var fits = <String, double>{};
     if (ids.isNotEmpty) {
       try {
+        // Meets' own comps ride in the same request: affinities from different
+        // signals sit on different scales and can't be compared.
         fits = await qloo.fitOf(
             kind: f.primary,
-            signalIds: kit.anchors.map((a) => a.id).toList(),
-            candidateIds: ids,
-            label: 'Scored the LLM\'s picks against the same audience');
+            signalIds: anchorIds.toList(),
+            candidateIds: {...ids, ...meetsIds}.toList(),
+            label: 'Scored the LLM\'s picks and Meets\' comps against the same audience');
       } on QlooException catch (e) {
         emit.warn('Could not score the suggestions', e.message);
       }
     }
-    final reference = kit.primary.items.map((c) => c.entity.affinity).whereType<double>().toList()..sort();
+    final reference = meetsIds.map((id) => fits[id]).whereType<double>().toList()..sort();
     double? percentile(double? aff) =>
         aff == null || reference.isEmpty ? aff : reference.where((r) => r <= aff).length / reference.length;
 
@@ -98,6 +103,10 @@ Give me 6 comparable ${f.primary.plural.toLowerCase()} I should use as comps${b.
     for (final (name, e) in resolved) {
       if (e == null) {
         items.add(BaselineItem(name: name, verdict: 'not_found'));
+        continue;
+      }
+      if (anchorIds.contains(e.id)) {
+        items.add(BaselineItem(name: name, resolved: e, verdict: 'touchstone'));
         continue;
       }
       final aff = fits[e.id];
@@ -125,6 +134,7 @@ Give me 6 comparable ${f.primary.plural.toLowerCase()} I should use as comps${b.
       if (count('dated') > 0) '${count('dated')} fall outside your recency window',
       if (count('weak_fit') > 0) '${count('weak_fit')} have a weak audience overlap',
       if (count('not_found') > 0) '${count('not_found')} could not be found in Qloo',
+      if (count('touchstone') > 0) '${count('touchstone')} ${count('touchstone') == 1 ? 'is' : 'are'} already a touchstone in this kit',
     ];
     final summary = '${parts.join(', ')}.';
     emit.emit('done', 'Gut check complete', detail: summary);

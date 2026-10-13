@@ -201,6 +201,7 @@ class GutCheckSection extends StatelessWidget {
                             'too_big' => Pill('Too big', color: c.danger),
                             'dated' => Pill('Too old', color: c.gold),
                             'weak_fit' => Pill('Weak fit', color: c.muted),
+                            'touchstone' => Pill('Touchstone', color: c.faint),
                             _ => Pill('Not in Qloo', color: c.faint),
                           },
                         ),

@@ -349,7 +349,7 @@ class BaselineItem {
   final SizeBand? size;
   final RecencyBand? recency;
 
-  /// `strong`, `too_big`, `dated`, `weak_fit`, `not_found`.
+  /// `strong`, `too_big`, `dated`, `weak_fit`, `not_found`, `touchstone`.
   final String verdict;
 
   Json toJson() => compact({
