@@ -47,7 +47,7 @@ class LlmException implements Exception {
 class LlmClient {
   LlmClient({
     required String apiKey,
-    this.model = 'claude-opus-5-5',
+    this.model = 'claude-sonnet-5-5',
     this.effort = 'medium',
     String baseUrl = 'https://api.anthropic.com',
     http.Client? client,

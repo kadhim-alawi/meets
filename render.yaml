@@ -16,7 +16,7 @@ services:
       - key: PUBLIC_URL
         sync: false
       - key: LLM_MODEL
-        value: claude-opus-5-5
+        value: claude-sonnet-5-5
     disk:
       name: meets-data
       mountPath: /srv/data

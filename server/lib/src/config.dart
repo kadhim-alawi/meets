@@ -68,7 +68,7 @@ class Config {
       // Deliberately not ANTHROPIC_BASE_URL, so a developer's shell setting
       // for other tools never redirects the app's traffic.
       anthropicBaseUrl: s('MEETS_ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
-      llmModel: s('LLM_MODEL', 'claude-opus-5-5'),
+      llmModel: s('LLM_MODEL', 'claude-sonnet-5-5'),
       llmEffort: s('LLM_EFFORT', 'medium'),
       dataDir: s('DATA_DIR', 'data'),
       webDir: s('WEB_DIR', '../app/build/web'),

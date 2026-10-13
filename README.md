@@ -118,7 +118,7 @@ See [`.env.example`](.env.example). Highlights:
 |---|---|---|
 | `QLOO_API_KEY` | — | Hackathon keys only work on `https://hackathon.api.qloo.com` (sent as `X-Api-Key`) |
 | `ANTHROPIC_API_KEY` | — | Optional. Enables logline reading, LLM copy, refine and gut check |
-| `LLM_MODEL` | `claude-opus-5-5` | Effort via `LLM_EFFORT` (default `medium`); server-side refusal fallbacks enabled |
+| `LLM_MODEL` | `claude-sonnet-5-5` | Effort via `LLM_EFFORT` (default `medium`); server-side refusal fallbacks enabled |
 | `RUNS_PER_HOUR_PER_IP` / `RUNS_PER_DAY` | 20 / 400 | Protects the shared key (5 req/s, 10k/month). A full run is ~25–35 Qloo calls; repeats hit the cache |
 | `QLOO_MODE` | `live` if key set | `preview` serves **labelled sample data** for UI work only |
 

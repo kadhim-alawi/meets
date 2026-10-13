@@ -152,7 +152,7 @@ void main() {
       expect(kit.summary, isNot(contains('E999')));
       expect(kit.copy.map((c) => c.id), isNot(contains('not_a_block')));
       expect(emitter.events.any((e) => e.kind == 'warn' && e.title.contains('could not ground')), isTrue);
-      expect(captured.first['model'], 'claude-opus-5-5');
+      expect(captured.first['model'], 'claude-sonnet-5-5');
       expect(captured.first['output_config'], {'effort': 'low'});
     });
 
