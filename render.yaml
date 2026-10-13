@@ -1,10 +1,15 @@
 # Render blueprint: New + > Blueprint > pick this repo. Set the secrets in the dashboard.
+#
+# shortcut: the free plan sleeps after 15 idle minutes (~1 min to wake) and has
+# no disk, so shared kits and the Qloo cache vanish on sleep or redeploy. Before
+# judging, switch to `plan: starter` and add back:
+#     disk: {name: meets-data, mountPath: /srv/data, sizeGB: 1}
 services:
   - type: web
     name: meets
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     healthCheckPath: /api/health
     envVars:
       - key: QLOO_API_KEY
@@ -15,7 +20,3 @@ services:
         value: https://hackathon.api.qloo.com
       - key: LLM_MODEL
         value: claude-sonnet-5-5
-    disk:
-      name: meets-data
-      mountPath: /srv/data
-      sizeGB: 1
