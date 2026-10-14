@@ -52,8 +52,9 @@ class Composer {
     final bigs = kit.primary.items.where((c) => c.flags.contains('too_big')).length;
     final parts = <String>[
       'Meets scanned Qloo\'s ${f.primary.plural.toLowerCase()} for people who love ${joinNames(kit.anchors.take(3).map((a) => a.name).toList())}.',
-      '${sweet.where((c) => c.isSweetSpot).length} of the top ${kit.primary.items.length} sit in your ${kit.brief.size.label.toLowerCase()} sweet spot'
-          '${bigs > 0 ? '; $bigs are too big to use as comps' : ''}.',
+      '${sweet.where((c) => c.isSweetSpot).length} of the top ${kit.primary.items.length} '
+          '${sweet.where((c) => c.isSweetSpot).length == 1 ? 'sits' : 'sit'} in your ${kit.brief.size.label.toLowerCase()} sweet spot'
+          '${bigs > 0 ? '; $bigs ${bigs == 1 ? 'is' : 'are'} too big to use as comps' : ''}.',
     ];
     final audience = kit.audience;
     if (audience != null && !audience.isEmpty) parts.add(describeAudience(audience, f.audience));

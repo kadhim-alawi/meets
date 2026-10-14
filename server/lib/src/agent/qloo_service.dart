@@ -112,12 +112,14 @@ class QlooService {
   }
 
   /// `urn:tag` taste analysis for a signal.
-  Future<List<TagRef>> tasteTags(List<String> signalIds, {EntityKind? parent, int take = 30, required String label}) async {
+  Future<List<TagRef>> tasteTags(List<String> signalIds,
+      {EntityKind? parent, String? tagTypes, int take = 30, required String label}) async {
     try {
       final json = await _get(label, '/v2/insights', {
         'filter.type': 'urn:tag',
         'signal.interests.entities': signalIds,
         'filter.parents.types': parent?.urn,
+        'filter.tag.types': tagTypes,
         'take': take,
       }, (j) => parseTags(j).length);
       return parseTags(json).where(isDescriptiveTag).toList();

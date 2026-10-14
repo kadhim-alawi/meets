@@ -20,6 +20,9 @@ class AgentFailure implements Exception {
   String toString() => message;
 }
 
+/// Taste tags true of nearly every title in a family, so they say nothing about this audience.
+const _generic = {'adult', 'adult fiction', 'audiobook', 'fiction', 'boy', 'girl', 'friend', 'actor', 'actress'};
+
 String normalizeTitle(String s) => s
     .toLowerCase()
     .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
@@ -336,8 +339,11 @@ class CompsAgent {
       'signal.demographics.age': brief.ages.map((a) => a.key).toList(),
       'filter.exclude.entities': {...anchorIds, ...brief.excludeIds}.toList(),
       'feature.explainability': true,
+      // A stand-up's comps are comedians; actors tagged "Comedy" otherwise crowd them out.
+      if (kind == EntityKind.person) 'filter.tags': 'urn:tag:genre:person:comedian',
       'take': 40,
     };
+    if (kind == EntityKind.person) filters.add('Comedians only');
     int? minYear;
     if (format.recencyParam != null && brief.recencyYears > 0) {
       minYear = year - brief.recencyYears;
@@ -375,7 +381,7 @@ class CompsAgent {
         final bigger = list.where((e) => SizeBand.of(e.popularity).bigness > bands.map((b) => b.bigness).reduce((x, y) => x > y ? x : y)).length;
         emit.decision(
           'Only $inBand of ${list.length} results are ${brief.size.label.toLowerCase()}-sized',
-          '$bigger are bigger than useful comps. Digging below the top ${((1 - cap) * 100).toStringAsFixed(1)}% for right-sized ${kind.plural.toLowerCase()}.',
+          '$bigger ${bigger == 1 ? 'is' : 'are'} bigger than useful comps. Digging below the top ${((1 - cap) * 100).toStringAsFixed(1)}% for right-sized ${kind.plural.toLowerCase()}.',
         );
         try {
           final deeper = await qloo.insights({...params, 'filter.popularity.max': cap},
@@ -385,15 +391,6 @@ class CompsAgent {
         } on QlooException catch (e) {
           emit.warn('The deeper pass failed', e.message);
         }
-      }
-    }
-
-    if (kind == EntityKind.person) {
-      bool comic(Entity e) => e.tags.any((t) => t.name.toLowerCase().contains('comed') || t.name.toLowerCase().contains('stand'));
-      final comedians = list.where(comic).toList();
-      if (comedians.length >= 5) {
-        list = [...comedians, ...list.where((e) => !comic(e))];
-        emit.decision('Put comedians first', '${comedians.length} of ${list.length} people are tagged as comedy.');
       }
     }
 
@@ -449,10 +446,13 @@ class CompsAgent {
         }
       }(),
       () async {
+        final family = format.tasteTags;
+        if (family == null) return;
         try {
           final anchorNameSet = anchors.map((a) => normalizeTitle(a.name)).toSet();
-          descriptors = (await qloo.tasteTags(anchorIds, parent: format.primary, take: 30, label: 'Read the audience\'s taste descriptors'))
-              .where((t) => !anchorNameSet.contains(normalizeTitle(t.name)))
+          descriptors = (await qloo.tasteTags(anchorIds,
+                  parent: format.primary, tagTypes: family, take: 30, label: 'Read the audience\'s taste descriptors'))
+              .where((t) => !anchorNameSet.contains(normalizeTitle(t.name)) && !_generic.contains(normalizeTitle(t.name)))
               .take(14)
               .toList();
         } on QlooException catch (e) {

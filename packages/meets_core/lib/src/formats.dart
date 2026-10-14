@@ -40,6 +40,7 @@ enum WorkFormat {
     cross: [EntityKind.movie, EntityKind.tvShow, EntityKind.artist, EntityKind.podcast],
     channels: [EntityKind.podcast, EntityKind.brand],
     recencyParam: 'filter.publication_year.min',
+    tasteTags: 'urn:tag:genre:media',
     pitch: CopySpec('pitch', 'Query letter comps', 'The comparables paragraph for a query letter or proposal.'),
     targets: [
       TargetSpec('amazon', 'Amazon Ads', 'Product and author targets for a Sponsored Products campaign.', [EntityKind.book]),
@@ -56,6 +57,7 @@ enum WorkFormat {
     cross: [EntityKind.tvShow, EntityKind.book, EntityKind.artist, EntityKind.podcast],
     channels: [EntityKind.podcast, EntityKind.brand],
     recencyParam: 'filter.release_year.min',
+    tasteTags: 'urn:tag:keyword:media',
     pitch: CopySpec('pitch', 'Pitch deck: comps slide', 'Comps and audience for a pitch deck or financing package.'),
     targets: [
       TargetSpec('meta', 'Meta (Facebook/Instagram)', 'Interests for trailer and screening campaigns.',
@@ -72,6 +74,7 @@ enum WorkFormat {
     cross: [EntityKind.movie, EntityKind.book, EntityKind.podcast, EntityKind.artist],
     channels: [EntityKind.podcast, EntityKind.brand],
     recencyParam: 'filter.latest_known_year.min',
+    tasteTags: 'urn:tag:keyword:media',
     pitch: CopySpec('pitch', 'Series pitch: comps', 'Comps and audience for a series pitch or lookbook.'),
     targets: [
       TargetSpec('meta', 'Meta (Facebook/Instagram)', 'Interests for launch and awareness campaigns.',
@@ -88,6 +91,7 @@ enum WorkFormat {
     cross: [EntityKind.movie, EntityKind.tvShow, EntityKind.podcast, EntityKind.book],
     channels: [EntityKind.brand, EntityKind.podcast],
     recencyParam: null,
+    tasteTags: 'urn:tag:genre:music',
     pitch: CopySpec('pitch', 'Playlist & press pitch', 'The "sounds like / for fans of" pitch for editors, blogs and promoters.'),
     targets: [
       TargetSpec('spotify', 'Spotify / streaming ads', 'Similar artists for fan-targeted campaigns (e.g. Marquee, Showcase).', [EntityKind.artist]),
@@ -104,6 +108,7 @@ enum WorkFormat {
     cross: [EntityKind.movie, EntityKind.tvShow, EntityKind.artist, EntityKind.podcast],
     channels: [EntityKind.podcast, EntityKind.brand],
     recencyParam: null,
+    tasteTags: 'urn:tag:genre:qloo',
     pitch: CopySpec('pitch', 'Store page & publisher pitch', 'The "if you like..." block for a store page or publisher deck.'),
     targets: [
       TargetSpec('steam', 'Steam & store pages', 'Games to reference in tags, "more like this" and press outreach.', [EntityKind.videoGame]),
@@ -120,6 +125,7 @@ enum WorkFormat {
     cross: [EntityKind.book, EntityKind.tvShow, EntityKind.artist, EntityKind.movie],
     channels: [EntityKind.brand, EntityKind.person],
     recencyParam: null,
+    tasteTags: 'urn:tag:genre:media',
     pitch: CopySpec('pitch', 'Network & sponsor pitch', 'Comps and audience for a network, guest or sponsor pitch.'),
     targets: [
       TargetSpec('podcast_ads', 'Podcast ad swaps & ads', 'Shows to cross-promote with or advertise on.', [EntityKind.podcast]),
@@ -136,6 +142,7 @@ enum WorkFormat {
     cross: [EntityKind.tvShow, EntityKind.movie, EntityKind.podcast, EntityKind.artist],
     channels: [EntityKind.podcast, EntityKind.brand],
     recencyParam: null,
+    tasteTags: null,
     pitch: CopySpec('pitch', 'Booking pitch', 'Comps and audience for a club, festival or special pitch.'),
     targets: [
       TargetSpec('meta', 'Meta (Facebook/Instagram)', 'Comedian and show interests for ticket campaigns.',
@@ -153,6 +160,7 @@ enum WorkFormat {
     required this.cross,
     required this.channels,
     required this.recencyParam,
+    required this.tasteTags,
     required this.pitch,
     required this.targets,
   });
@@ -176,6 +184,11 @@ enum WorkFormat {
 
   /// Insights parameter that keeps comps recent, if Qloo has one for [primary].
   final String? recencyParam;
+
+  /// Tag family for the audience's taste descriptors. Unfiltered, Qloo's top
+  /// tags drift off-topic ("Beauty Pageant" for a gothic novel). Null when
+  /// no family fits (stand-up: person tags are jobs, not tastes).
+  final String? tasteTags;
   final CopySpec pitch;
   final List<TargetSpec> targets;
 

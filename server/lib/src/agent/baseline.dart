@@ -128,13 +128,14 @@ ${b.logline.isEmpty ? '' : 'It is about: ${b.logline}\n'}${own.isEmpty ? '' : "I
     }
 
     int count(String v) => items.where((i) => i.verdict == v).length;
+    String n(String v, String one, String many) => '${count(v)} ${count(v) == 1 ? one : many}';
     final parts = <String>[
-      '${count('strong')} of ${items.length} hold up as comps',
-      if (count('too_big') > 0) '${count('too_big')} are too big to position against',
-      if (count('dated') > 0) '${count('dated')} fall outside your recency window',
-      if (count('weak_fit') > 0) '${count('weak_fit')} have a weak audience overlap',
+      '${count('strong')} of ${items.length} ${count('strong') == 1 ? 'holds' : 'hold'} up as comps',
+      if (count('too_big') > 0) n('too_big', 'is too big to position against', 'are too big to position against'),
+      if (count('dated') > 0) n('dated', 'falls outside your recency window', 'fall outside your recency window'),
+      if (count('weak_fit') > 0) n('weak_fit', 'has a weak audience overlap', 'have a weak audience overlap'),
       if (count('not_found') > 0) '${count('not_found')} could not be found in Qloo',
-      if (count('touchstone') > 0) '${count('touchstone')} ${count('touchstone') == 1 ? 'is' : 'are'} already a touchstone in this kit',
+      if (count('touchstone') > 0) n('touchstone', 'is already a touchstone in this kit', 'are already touchstones in this kit'),
     ];
     final summary = '${parts.join(', ')}.';
     emit.emit('done', 'Gut check complete', detail: summary);

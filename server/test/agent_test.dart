@@ -187,13 +187,36 @@ void main() {
       // Scored in the same request as Meets' own comps, so one of them can't rank below them all.
       expect(result.items.firstWhere((i) => i.name == meetsComp).fit, greaterThan(0));
       expect(result.summary, contains('of 6'));
-      expect(result.summary, contains('2 are already a touchstone in this kit'));
+      expect(result.summary, contains('2 are already touchstones in this kit'));
+      expect(result.summary, contains('1 is too big to position against'));
+      expect(result.summary, contains('1 of 6 holds up'));
       // The plain model sees only what the creator typed, not Meets' Qloo-verified suggestions.
       final prompt = jsonEncode(sent.single['messages']);
       expect(prompt, contains('Piranesi'));
       expect(prompt, isNot(contains('Babel')));
       expect(prompt, contains('other than those'));
     });
+  });
+
+  test('taste descriptors come from the format\'s tag family, and stand-up skips them', () async {
+    final tagCalls = <Map<String, String>>[];
+    final personScans = <Map<String, String>>[];
+    final client = QlooClient(apiKey: 'preview', mode: 'preview', minInterval: Duration.zero, transport: (uri, headers) {
+      if (uri.queryParameters['filter.type'] == 'urn:tag') tagCalls.add(uri.queryParameters);
+      if (uri.queryParameters['filter.type'] == 'urn:entity:person' && uri.queryParameters.containsKey('feature.explainability')) {
+        personScans.add(uri.queryParameters);
+      }
+      return previewTransport(uri, headers);
+    });
+    final agent = CompsAgent(client: client, clock: () => DateTime(2026, 10, 9));
+    await agent.build(bookBrief, ListEmitter(), kitId: 'k6');
+    expect(tagCalls.single['filter.tag.types'], 'urn:tag:genre:media');
+    tagCalls.clear();
+    const standup = Brief(format: WorkFormat.standup, anchors: [AnchorInput(name: 'Nate Bargatze', kind: EntityKind.person)]);
+    await agent.build(standup, ListEmitter(), kitId: 'k7');
+    expect(tagCalls, isEmpty);
+    // The stand-up shelf is comedians, filtered by Qloo itself.
+    expect(personScans.first['filter.tags'], 'urn:tag:genre:person:comedian');
   });
 
   test('comp check scores your comps on the same scale as Meets\' comps', () async {
