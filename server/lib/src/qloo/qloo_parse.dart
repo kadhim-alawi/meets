@@ -181,7 +181,8 @@ Entity? parseEntity(Object? raw, {int maxTags = 12}) {
       .toList();
   return Entity(
     id: id,
-    name: name.trim(),
+    // "Little Thieves (Little Thieves, #1)": the series label is noise in a comp line.
+    name: name.replaceFirst(RegExp(r'\s*\([^()]*#\d+(\.\d+)?\)\s*$'), '').trim(),
     kind: _kindOf(json),
     year: _yearOf(props),
     creator: _creatorOf(props) ?? _creatorFromDisambiguation(json['disambiguation']),

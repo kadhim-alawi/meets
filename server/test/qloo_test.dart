@@ -273,6 +273,18 @@ void main() {
       });
       expect(list.map((x) => x.creator), ['Lindsay Ellis', 'Greta Gerwig', null, null, null]);
     });
+
+    test('drops Goodreads-style series labels from names', () {
+      Map<String, Object?> e(String name) => {'entity_id': name, 'name': name, 'types': ['urn:entity:book']};
+      final list = parseSearch({
+        'results': [
+          e('The Book of Lost Things (The Book of Lost Things, #1)'),
+          e('Heartstopper: Volume Two (Heartstopper, #2)'),
+          e('Fantastic Mr. Fox (1970)'),
+        ],
+      });
+      expect(list.map((x) => x.name), ['The Book of Lost Things', 'Heartstopper: Volume Two', 'Fantastic Mr. Fox (1970)']);
+    });
   });
 
   group('matching', () {
