@@ -5,6 +5,7 @@ import 'package:meets_core/meets_core.dart';
 import '../llm/anthropic.dart';
 import '../qloo/qloo_client.dart';
 import 'analyst.dart';
+import 'baseline.dart';
 import 'composer.dart';
 import 'emitter.dart';
 import 'planner.dart';
@@ -75,6 +76,36 @@ TagRef? pickThemeTag(String theme, List<TagRef> tags) {
   }
   final words = target.split(' ');
   return exact ?? tags.where((t) => words.every(normalizeTitle(t.name).contains)).firstOrNull;
+}
+
+/// Tag families that describe a title's taste, best first. Raw plot keywords
+/// (`keyword:media`: "laundry chute", and worse) are never used.
+const _whyFamilies = ['subgenre', 'genre', 'style', 'theme', 'emotional_tone', 'plot', 'audience', 'keyword'];
+
+/// "A brings the …; B brings the …; fans of both share a taste for …", from
+/// each comp's own tags and the tags Qloo's audience compare found in common.
+String? pairingWhy(Entity a, Entity b, List<TagRef> compared) {
+  int rank(TagRef t) => _whyFamilies.indexOf(t.family);
+  bool usable(TagRef t) =>
+      rank(t) >= 0 &&
+      !(t.type ?? t.id).contains(':keyword:media') &&
+      !(t.family == 'audience' && !t.name.trim().contains(' '));
+  List<String> names(Iterable<TagRef> tags) {
+    final sorted = tags.where(usable).toList()..sort((x, y) => rank(x).compareTo(rank(y)));
+    return sorted.map((t) => t.name.toLowerCase().replaceAll(' - ', '-')).toSet().toList();
+  }
+
+  final aTags = names(a.tags), bTags = names(b.tags);
+  var shared = compared.where((t) => !(t.type ?? t.id).contains(':keyword:media')).map((t) => t.name.toLowerCase()).toSet().take(4).toList();
+  if (shared.isEmpty) shared = aTags.where(bTags.contains).take(3).toList();
+  final aOnly = aTags.where((t) => !bTags.contains(t) && !shared.contains(t)).take(2).toList();
+  final bOnly = bTags.where((t) => !aTags.contains(t) && !shared.contains(t)).take(2).toList();
+  final why = [
+    if (aOnly.isNotEmpty) '${a.name} brings the ${Composer.joinNames(aOnly)}',
+    if (bOnly.isNotEmpty) '${b.name} brings the ${Composer.joinNames(bOnly)}',
+    if (shared.isNotEmpty) 'fans of both share a taste for ${Composer.joinNames(shared)}',
+  ];
+  return why.isEmpty ? null : '${why.join('; ')}.'.replaceFirst(RegExp(r'^.'), why.first[0].toUpperCase());
 }
 
 /// Merges two affinity-ranked lists of the same request family.
@@ -231,6 +262,17 @@ class CompsAgent {
       }
     } else {
       notes.add('Copy was written from templates (no language model configured).');
+    }
+
+    if (model != null) {
+      // Every kit leads with what a plain chatbot would have said, measured against the same audience.
+      try {
+        kit = kit.copyWith(baseline: await GutCheck(model, client).run(kit, emit, currentYear: year, doneKind: 'decision'));
+      } on LlmException catch (e) {
+        emit.warn('Skipped the gut check', e.message);
+      } on QlooException catch (e) {
+        emit.warn('Skipped the gut check', e.message);
+      }
     }
 
     final allNotes = [...notes, ...composer.standardNotes(kit)];
@@ -504,30 +546,19 @@ class CompsAgent {
     if (pairing == null) return null;
 
     final a = pairing.a.entity, b = pairing.b.entity;
-    var shared = <String>[];
+    var shared = <TagRef>[];
     try {
-      final tags = await qloo.compare([a.id], [b.id], label: 'Compared the audiences of "${a.name}" and "${b.name}"');
-      shared = tags.take(4).map((t) => t.name.toLowerCase()).toList();
+      shared = await qloo.compare([a.id], [b.id], label: 'Compared the audiences of "${a.name}" and "${b.name}"');
     } on QlooException {
       // Fall back to local tag overlap.
     }
-    final aTags = a.tags.map((t) => t.name.toLowerCase()).toList();
-    final bTags = b.tags.map((t) => t.name.toLowerCase()).toList();
-    if (shared.isEmpty) shared = aTags.where(bTags.contains).take(3).toList();
-    final aOnly = aTags.where((t) => !bTags.contains(t) && !shared.contains(t)).take(2).toList();
-    final bOnly = bTags.where((t) => !aTags.contains(t) && !shared.contains(t)).take(2).toList();
-    final why = [
-      if (aOnly.isNotEmpty) '${a.name} brings the ${Composer.joinNames(aOnly)}',
-      if (bOnly.isNotEmpty) '${b.name} brings the ${Composer.joinNames(bOnly)}',
-      if (shared.isNotEmpty) 'fans of both share a taste for ${Composer.joinNames(shared)}',
-    ];
     pairing = CompPairing(
       a: pairing.a,
       b: pairing.b,
       similarity: pairing.similarity,
       score: pairing.score,
       alternatives: pairing.alternatives,
-      why: why.isEmpty ? null : '${why.join('; ')}.'.replaceFirst(RegExp(r'^.'), why.first[0].toUpperCase()),
+      why: pairingWhy(a, b, shared),
     );
     emit.decision('Comp line: ${pairing.line}',
         pairing.similarity == null ? 'Strong, right-sized and different from each other.' : 'Qloo similarity ${(pairing.similarity! * 100).round()}% — close enough to share fans, different enough to triangulate.');

@@ -6,10 +6,13 @@ import '../common.dart';
 
 /// Top of the kit: the "A meets B" line with both covers, then the framing.
 class KitHero extends StatelessWidget {
-  const KitHero({super.key, required this.kit, required this.actions});
+  const KitHero({super.key, required this.kit, required this.actions, this.proof});
 
   final CompKit kit;
   final List<Widget> actions;
+
+  /// Shown right under the comp line, ahead of the written summary.
+  final Widget? proof;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +87,7 @@ class KitHero extends StatelessWidget {
           const SizedBox(height: 14),
           Text(pair!.why!, style: context.t.bodyLarge?.copyWith(color: c.muted)),
         ],
+        ?proof,
         const SizedBox(height: 22),
         if (kit.headline != null && pair != null)
           Text(kit.headline!, style: Fonts.display(phone ? 22 : 26, color: c.ink, italic: true, height: 1.2)),

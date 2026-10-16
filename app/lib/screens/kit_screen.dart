@@ -182,23 +182,35 @@ class _KitScreenState extends State<KitScreen> {
       children: [
         section(
           'top',
-          KitHero(kit: kit, actions: [
-            FilledButton.icon(
-              onPressed: () => copyText(context, Api.instance.kitLink(kit.id), what: 'Link copied — anyone with it can open this kit'),
-              icon: const Icon(Icons.link_rounded, size: 18),
-              label: const Text('Share link'),
-            ),
-            OutlinedButton.icon(
-              onPressed: () => launchUrl(Uri.parse(Api.instance.exportUrl(kit.id, 'md'))),
-              icon: const Icon(Icons.description_outlined, size: 18),
-              label: const Text('Export .md'),
-            ),
-            OutlinedButton.icon(
-              onPressed: () => launchUrl(Uri.parse(Api.instance.exportUrl(kit.id, 'csv'))),
-              icon: const Icon(Icons.table_chart_outlined, size: 18),
-              label: const Text('Export .csv'),
-            ),
-          ]),
+          KitHero(
+            kit: kit,
+            proof: kit.baseline == null
+                ? null
+                : _GutStrip(
+                    baseline: kit.baseline!,
+                    onSeeWhy: () {
+                      final ctx = sections.firstWhere((s) => s.id == 'gut').key.currentContext;
+                      if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
+                    },
+                  ),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => copyText(context, Api.instance.kitLink(kit.id), what: 'Link copied — anyone with it can open this kit'),
+                icon: const Icon(Icons.link_rounded, size: 18),
+                label: const Text('Share link'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => launchUrl(Uri.parse(Api.instance.exportUrl(kit.id, 'md'))),
+                icon: const Icon(Icons.description_outlined, size: 18),
+                label: const Text('Export .md'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => launchUrl(Uri.parse(Api.instance.exportUrl(kit.id, 'csv'))),
+                icon: const Icon(Icons.table_chart_outlined, size: 18),
+                label: const Text('Export .csv'),
+              ),
+            ],
+          ),
         ),
         section('comps', CompsSection(kit: kit)),
         if (kit.compCheck.isNotEmpty) section('check', CompCheckSection(kit: kit)),
@@ -361,6 +373,84 @@ class _KitScreenState extends State<KitScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The gut check up front: what a plain chatbot suggested, and how much of it
+/// fails once Qloo measures it against this audience.
+class _GutStrip extends StatelessWidget {
+  const _GutStrip({required this.baseline, required this.onSeeWhy});
+
+  final BaselineResult baseline;
+  final VoidCallback onSeeWhy;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final judged = baseline.items.where((i) => i.verdict != 'touchstone').toList();
+    if (judged.isEmpty) return const SizedBox.shrink();
+    final failed = judged.where((i) => i.verdict != 'strong').length;
+    int n(String v) => judged.where((i) => i.verdict == v).length;
+    final names = judged.take(3).map((i) => i.name).join(', ');
+    final more = judged.length > 3 ? ' and ${judged.length - 3} more' : '';
+    return Padding(
+      padding: const EdgeInsets.only(top: 28),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: failed > 0 ? c.accent.withValues(alpha: 0.55) : c.line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'GUT CHECK · THE SAME MODEL, WITHOUT QLOO',
+              style: Fonts.monoW(11, weight: FontWeight.w600, color: c.accent, spacing: 1.2),
+            ),
+            const SizedBox(height: 10),
+            Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(text: 'A plain chatbot suggested '),
+                  TextSpan(
+                    text: names,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: '$more. '),
+                  TextSpan(
+                    text: failed == 0
+                        ? 'Measured by Qloo against this audience, all ${judged.length} hold up.'
+                        : 'Measured by Qloo against this audience, $failed of ${judged.length} don\'t hold up.',
+                    style: TextStyle(color: c.ink, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              style: Fonts.sansW(16, FontWeight.w400, color: c.muted, height: 1.45),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (n('too_big') > 0) Pill('${n('too_big')} too big', color: c.danger),
+                if (n('dated') > 0) Pill('${n('dated')} too old', color: c.gold),
+                if (n('weak_fit') > 0) Pill('${n('weak_fit')} weak fit', color: c.muted),
+                if (n('not_found') > 0) Pill('${n('not_found')} not in Qloo', color: c.faint),
+                if (n('strong') > 0) Pill('${n('strong')} hold up', color: c.teal),
+                TextButton.icon(
+                  onPressed: onSeeWhy,
+                  icon: const Icon(Icons.arrow_downward_rounded, size: 16),
+                  label: const Text('See why'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

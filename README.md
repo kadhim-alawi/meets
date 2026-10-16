@@ -33,7 +33,7 @@ Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/) ("Agents, but 
 | guesses who the audience is | measures **affinity** across books, film, TV, music, games, podcasts, people and brands, plus **demographics** (`urn:demographics`), **taste tags** (`urn:tag`) and **where fans cluster** (`urn:heatmap`) |
 | can invent titles | can only cite entities Qloo returned: the writer model refers to them by `{{alias}}` and the server swaps in real names |
 
-The kit includes a **Gut check** section. It asks the same model for comps *without* Qloo, then looks up each suggestion and scores it against the same audience. Its verdicts are "holds up", "too big", "too old", "weak fit" or "not in Qloo".
+Every kit leads with a **Gut check**, shown right under the comp line. It asks the same model for comps *without* Qloo, then looks up each suggestion and scores it against the same audience. Its verdicts are "holds up", "too big", "too old", "weak fit" or "not in Qloo".
 
 ## How the agent works
 

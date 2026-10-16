@@ -36,7 +36,7 @@ class GutCheck {
   final LlmClient llm;
   final QlooClient client;
 
-  Future<BaselineResult> run(CompKit kit, Emitter emit, {int currentYear = 0}) async {
+  Future<BaselineResult> run(CompKit kit, Emitter emit, {int currentYear = 0, String doneKind = 'done'}) async {
     final year = currentYear == 0 ? DateTime.now().year : currentYear;
     final qloo = QlooService(client, emit);
     final b = kit.brief;
@@ -138,7 +138,7 @@ ${b.logline.isEmpty ? '' : 'It is about: ${b.logline}\n'}${own.isEmpty ? '' : "I
       if (count('touchstone') > 0) n('touchstone', 'is already a touchstone in this kit', 'are already touchstones in this kit'),
     ];
     final summary = '${parts.join(', ')}.';
-    emit.emit('done', 'Gut check complete', detail: summary);
+    emit.emit(doneKind, 'Gut check complete', detail: summary);
     return BaselineResult(model: llm.model, items: items, summary: summary);
   }
 }

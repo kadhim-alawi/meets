@@ -166,6 +166,10 @@ void main() {
       expect(kit.summary, isNot(contains('E999')));
       expect(kit.copy.map((c) => c.id), isNot(contains('not_a_block')));
       expect(emitter.events.any((e) => e.kind == 'warn' && e.title.contains('could not ground')), isTrue);
+      // Every kit built with a model leads with its gut check; the log still ends on the kit.
+      expect(kit.baseline, isNotNull);
+      expect(kit.baseline!.items, isNotEmpty);
+      expect(emitter.events.last.title, 'Comp kit ready');
       expect(captured.first['model'], 'claude-sonnet-5-5');
       expect(captured.first['output_config'], {'effort': 'low'});
     });
