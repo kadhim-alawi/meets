@@ -320,6 +320,23 @@ void main() {
       expect(pickThemeTag('dark academia', [tag('genre', 'Dark'), tag('genre', 'Dark Fantasy'), tag('genre', 'Academia')]), isNull);
     });
 
+    test('comp line explanation skips raw plot keywords and repeats', () {
+      TagRef t(String name, String type) => TagRef(id: 'urn:tag:x:${name.toLowerCase()}', name: name, type: 'urn:tag:$type');
+      final a = Entity(id: 'a', name: 'Villains', kind: EntityKind.movie, tags: [
+        t('Woman rubs a mans crotch', 'keyword:media'),
+        t('Tense', 'plot:qloo'),
+        t('Dark comedy', 'subgenre:qloo'),
+        t('Violence', 'theme:qloo'),
+      ]);
+      final b = Entity(id: 'b', name: 'The Kid Detective', kind: EntityKind.movie, tags: [
+        t('Teenage client', 'keyword:media'),
+        t('Comedy', 'genre:qloo'),
+        t('Mature', 'audience:qloo'),
+      ]);
+      final why = pairingWhy(a, b, [t('Comedy', 'genre:qloo'), t('Kidnapping', 'keyword:media'), t('comedy', 'genre:qloo')])!;
+      expect(why, 'Villains brings the dark comedy and violence; fans of both share a taste for comedy.');
+    });
+
     test('merges lists by affinity without duplicates', () {
       final a = [const Entity(id: '1', name: 'A', kind: EntityKind.book, affinity: 0.9)];
       final b = [
