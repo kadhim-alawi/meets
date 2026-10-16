@@ -405,7 +405,7 @@ class _Footer extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             const MeetsLogo(size: 22),
-            Text('Built for the Qloo Agentic Hackathon · Taste data by Qloo · Writing by Claude · MIT licensed',
+            Text('Built for the Qloo Agentic Hackathon · Taste data by Qloo · Agent and writing by Claude · MIT licensed',
                 style: context.t.bodySmall),
             Text('Affinity is aggregate taste, never a sales forecast or a profile of any person.', style: context.t.bodySmall),
           ],
