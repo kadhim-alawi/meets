@@ -300,6 +300,14 @@ void main() {
       expect(pickMatch('dune', results)!.id, '2');
     });
 
+    test('prefers the original over a same-titled study guide', () {
+      final results = [
+        Entity(id: 'guide', name: "Harry Potter and the Sorcerer's Stone", kind: EntityKind.book),
+        e('novel', 'Harry Potter and the Sorcerer’s Stone', EntityKind.book, 0.999),
+      ];
+      expect(pickMatch("Harry Potter and the Sorcerer's Stone", results, kind: EntityKind.book)!.id, 'novel');
+    });
+
     test('rejects unrelated best guesses', () {
       expect(pickMatch('Quiet Ponds', [e('1', 'Loud Mountains', EntityKind.book, 0.9)]), isNull);
     });
