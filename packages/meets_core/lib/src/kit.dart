@@ -498,6 +498,7 @@ class CompKit {
   }
 
   CompKit copyWith({
+    String? id,
     int? version,
     List<CopyBlock>? copy,
     List<TargetList>? targeting,
@@ -509,7 +510,7 @@ class CompKit {
     CompPairing? pairing,
   }) =>
       CompKit(
-        id: id,
+        id: id ?? this.id,
         createdAt: createdAt,
         brief: brief,
         mode: mode,

@@ -104,14 +104,19 @@ class _KitScreenState extends State<KitScreen> {
             _activeRun = null;
             if (kit != null) _kit = kit;
           });
-          // The server stitches and renumbers the audit trail; fetch it.
-          if (kit != null) _load();
           final msg = snap.status == RunStatus.failed
               ? (snap.error ?? 'That did not work.')
               : kind == 'refine'
                   ? 'Kit updated to v${kit?.version ?? ''}'
                   : 'Gut check complete';
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+          if (kit != null && kit.id != widget.kitId) {
+            // An example was edited: the server worked on a copy, which has its own page and share link.
+            context.go('/kit/${kit.id}');
+          } else if (kit != null) {
+            // The server stitches and renumbers the audit trail; fetch it.
+            _load();
+          }
         }
       }, onError: (Object e) {
         if (!mounted) return;

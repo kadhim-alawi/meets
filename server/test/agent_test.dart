@@ -233,6 +233,30 @@ void main() {
     }
   });
 
+  test('refining an example kit works on a copy, leaving the example as shipped', () async {
+    final tmp = await Directory.systemTemp.createTemp('meets_examples');
+    addTearDown(() => tmp.delete(recursive: true));
+    final client = previewClient();
+    final example = await CompsAgent(client: client, clock: () => DateTime(2026, 10, 9)).build(bookBrief, ListEmitter(), kitId: 'ex-book');
+    await Directory('${tmp.path}/examples/kits').create(recursive: true);
+    await File('${tmp.path}/examples/kits/ex-book.json').writeAsString(jsonEncode({'kit': example.toJson(), 'trace': []}));
+    final images = ImageProxy();
+    final kits = KitStore(dataDir: '${tmp.path}/data', examplesDir: '${tmp.path}/examples', images: images);
+    await kits.load();
+    final runs = RunManager(client: client, llm: null, kits: kits, images: images);
+
+    final record = runs.startRefine('ex-book', 'only the last 3 years', '1.1.1.1');
+    expect(record.kitId, isNot('ex-book'));
+    while (!record.status.finished) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    expect(record.status, RunStatus.done);
+    expect(kits.get(record.kitId)!.version, 2);
+    expect(kits.get('ex-book')!.version, 1);
+    // The copy is a normal kit: refining it again keeps its id.
+    expect(runs.startRefine(record.kitId, 'more indie', '1.1.1.1').kitId, record.kitId);
+  });
+
   group('refine heuristics', () {
     test('reads windows, sizes, markets and drops', () async {
       final kit = await CompsAgent(client: previewClient(), clock: () => DateTime(2026, 10, 9)).build(bookBrief, ListEmitter(), kitId: 'k4');

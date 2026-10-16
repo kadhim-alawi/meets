@@ -60,6 +60,7 @@ class KitStore {
   final String? examplesDir;
   final ImageProxy images;
   final _kits = <String, (CompKit, List<RunEvent>)>{};
+  final _examples = <String>{};
 
   String get _dir => p.join(dataDir, 'kits');
 
@@ -75,6 +76,7 @@ class KitStore {
           final trace = listOf(json['trace'], RunEvent.fromJson);
           if (kit.id.isEmpty) continue;
           _kits[kit.id] = (kit, trace);
+          if (dir != _dir) _examples.add(kit.id);
           _allowImages(kit);
         } on Object catch (e) {
           stderr.writeln('Skipping unreadable kit ${f.path}: $e');
@@ -88,6 +90,7 @@ class KitStore {
   CompKit? get(String id) => _kits[id]?.$1;
   List<RunEvent> traceOf(String id) => _kits[id]?.$2 ?? const [];
   bool contains(String id) => _kits.containsKey(id);
+  bool isExample(String id) => _examples.contains(id);
 
   Future<void> save(CompKit kit, List<RunEvent> trace) async {
     _kits[kit.id] = (kit, trace);
@@ -245,6 +248,15 @@ class RunManager {
     return record;
   }
 
+  /// Edits to a shipped example go to a copy, so one visitor's refine or gut
+  /// check never changes the example for everyone else.
+  String _ownCopy(String kitId) {
+    if (!kits.isExample(kitId)) return kitId;
+    final id = newId(8);
+    unawaited(kits.save(kits.get(kitId)!.copyWith(id: id), kits.traceOf(kitId)));
+    return id;
+  }
+
   void _lockable(String kitId) {
     if (_busyKits.contains(kitId)) {
       throw LimitExceeded('This kit is already being updated. Wait for that to finish, then try again.');
@@ -268,6 +280,7 @@ class RunManager {
     if (text.isEmpty || text.length > 500) throw ArgumentError('Write a short request (up to 500 characters).');
     _lockable(kitId);
     _checkLimits(ip);
+    kitId = _ownCopy(kitId);
     return _start('refine', kitId, ip, (r) async {
       // Read the kit when the run starts, not when it was queued.
       final kit = kits.get(kitId)!;
@@ -295,6 +308,7 @@ class RunManager {
     if (model == null) throw ArgumentError('The gut check needs a language model, and none is configured on this server.');
     _lockable(kitId);
     _checkLimits(ip);
+    kitId = _ownCopy(kitId);
     return _start('gutcheck', kitId, ip, (r) async {
       final kit = kits.get(kitId)!;
       final baseline = await GutCheck(model, client).run(kit, r.emitter);

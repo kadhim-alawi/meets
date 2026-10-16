@@ -173,7 +173,7 @@ class Api {
     try {
       final body = asJson(jsonDecode(await request.readAsString()));
       final record = manager.startRefine(id, asString(body['message']) ?? '', clientIp(request));
-      return jsonResponse({'runId': record.id, 'kitId': id}, status: 202);
+      return jsonResponse({'runId': record.id, 'kitId': record.kitId}, status: 202);
     } on FormatException {
       return problem(400, 'Body must be JSON.');
     } on StateError {
@@ -190,7 +190,7 @@ class Api {
     if (manager == null) return problem(503, 'Qloo is not configured on this server.');
     try {
       final record = manager.startGutCheck(id, clientIp(request));
-      return jsonResponse({'runId': record.id, 'kitId': id}, status: 202);
+      return jsonResponse({'runId': record.id, 'kitId': record.kitId}, status: 202);
     } on StateError {
       return problem(404, 'No kit with that id.');
     } on ArgumentError catch (e) {
