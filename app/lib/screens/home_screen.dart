@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextButton(onPressed: () => _scrollTo(_agentsKey), child: const Text('For AI agents')),
                       ],
                       TextButton.icon(
-                        onPressed: () => launchUrl(Uri.parse('https://github.com/kadhim-alawi/qloo_hackathon')),
+                        onPressed: () => launchUrl(Uri.parse('https://github.com/kadhim-alawi/meets')),
                         icon: const Icon(Icons.code_rounded, size: 18),
                         label: const Text('Source'),
                       ),
