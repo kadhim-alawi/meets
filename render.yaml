@@ -2,7 +2,7 @@
 #
 # shortcut: the free plan sleeps after 15 idle minutes (~1 min to wake) and has
 # no disk, so shared kits and the Qloo cache vanish on sleep or redeploy. Before
-# judging, switch to `plan: starter` and add back:
+# a demo that stays up, switch to `plan: starter` and add back:
 #     disk: {name: meets-data, mountPath: /srv/data, sizeGB: 1}
 services:
   - type: web
