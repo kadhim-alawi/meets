@@ -1,8 +1,8 @@
 # Render blueprint: New + > Blueprint > pick this repo. Set the secrets in the dashboard.
 #
 # shortcut: the free plan sleeps after 15 idle minutes (~1 min to wake) and has
-# no disk, so shared kits and the Qloo cache vanish on sleep or redeploy. Before
-# a demo that stays up, switch to `plan: starter` and add back:
+# no disk, so shared kits and the Qloo cache vanish on sleep or redeploy. For
+# an always-on demo, switch to `plan: starter` and add back:
 #     disk: {name: meets-data, mountPath: /srv/data, sizeGB: 1}
 services:
   - type: web
